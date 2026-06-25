@@ -1,0 +1,6 @@
+1.2.0
+Build: 2026-05-15
+Target: x86_64-windows
+Source: inference_core.c (ECU ARM Cortex-R52 交叉编译)
+Models: M1-validity, M2-classification(9cls), M3-collision(4cls), M4-vae-anomaly
+Note: 本DLL为占位文件，实际DLL由嵌入式SDK编译提供，放置于此目录后软件自动加载。

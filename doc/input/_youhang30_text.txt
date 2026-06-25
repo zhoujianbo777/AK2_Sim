@@ -1,0 +1,1694 @@
+
+=== PAGE 1 ===
+珠海佑航科技有限公司- DJ628.30
+1
+Ak2超声波传感器芯片DJ628.30产品说明书V1.2
+一般特性
+芯片介绍
+测量距离：15cm 到6m（外部物料相关）
+工作电压：6V～24V(Max.40V 耐压）
+通讯接口：ESI通讯(1M/s)兼容DIS3通讯
+（888kb/s）
+OSC:72MHz 内部时钟
+存储：48kB MTP + 24kB SRAM with ECC
+内部集成温度传感器
+AEC-Q100 Grade2
+ISO 26262:2011（安全等级ASIL B）
+封装：QFN20 5x5mm
+诊断功能：
+环境噪声诊断
+过压/欠压诊断
+谐振频率诊断
+通讯链路诊断
+传感器阻抗检测
+驱动器和接收器特性
+支持测量模式：定频/线性Chirp/非线性
+Chirp/MSK/FSK
+超声波传感器频率：30kHz~80kHz
+可编程驱动电流：98mA～1000mA
+可编程驱动脉冲：0~128
+可编程接收增益（模拟）:42.3~66.4dB
+ADC:16bit
+DJ628.30 芯片是一颗SOC 芯片，内部集成了
+32 位的RSICV 及对信号进行各种算法的DSP，
+同时还集成了用于对超声波输入信号进行放
+大滤波的可编程的低噪声的PGA 模拟放大
+器，最大放大倍数达60db 以上，且具有极佳
+的信噪比和低失真度，内部集成了16 位的高
+性能的ADC，能满足在超声波检测中配合内
+部嵌入式软件进行各种功能需求的应用程序
+开发。嵌入式微控制器具有灵活的可编程性
+能，可以适应各种应用及功能升级。在芯片
+内部集成了先进和非常可靠的回波检测数字
+信号过滤器、自动阈值、回声峰值检测、灵
+敏度时间控制等功能模块，通过新的超声信
+号编码实现了短距离和远距检测的优化，及
+对噪声、环境条件等的稳健性。通过ESI 接口，
+每个传感器高达888 kbit/s 高速率数据传输，
+减少系统反应时间。支持点对点拓扑和总线
+模式。功能强大的32 位RSICV 提供了许多功
+能特殊的分析、评估和调试目的(例如:超声波
+的包络线和原始数据的输出)。
+应用范围
+自动泊车/倒车辅助系统
+盲区探测报警系统
+车门防撞系统
+涉水深度探测系统
+油箱液位探测系统
+工业距离探测系统
+无人机降落辅助系统
+信号处理器特性
+数字滤波器
+可编程接收增益（数字）: 0~47.89dB
+时变增益控制（STC）
+静态阈值生成（STG）
+高级自适应阈值（AATG1/AATG2)
+噪声抑制(CNS/DNS)
+近场检测（NFD）
+快速时间常数算法（FTC）
+回波检测（EDI）：包含回波类型、时间戳、
+置信度等
+原始包络输出
+订单信息
+Product ID
+Order code
+Package
+
+=== PAGE 2 ===
+2
+珠海佑航科技有限公司
+典型应用电路
+功能框图
+VSUP
+ VDDA
+ GNDA
+ VDDD
+ GND
+VTANK
+DRVS
+DRV1
+DRV2
+GNDP
+Transducer Driver - TDR
+Controller - TDR
+Analog Signal Processing - ASP
+RTC_ON
+RTC
+ADC_DTA
+ADC_EOC
+AINS
+AING
+Analog Data Acquisiton - ADA
+VTANK 
+VSUP
+ VDDA
+ VDDD
+Communicaton
+Interface 
+ESI
+VSUP
+ESI
+ESI_O
+GNDB
+CPU access
+GPIO0
+GPIO1
+CPU access
+General Purpose
+Interface - GPI
+ESI
+ESI_O
+GNDB
+UART_TX/GPIO0
+UART_RX/GPIO1 
+VTANK 
+DRVS
+ DRV1
+ DRV2
+ GNDP
+Controller - ASP
+DEBUG
+TCK
+TMS
+EP
+Supplies and References - SUP
+VSUP
+ VDDA
+ GNDA
+ VDDD
+ GND
+AINS
+AING
+DRV_EN
+ DRV1_EN
+ DRV2_EN
+DRV_EN
+ DRV1_EN
+ DRV2_EN
+Watchdog
+CPU Core
+RISCV
+SWD/JTAG
+Debug IF
+Sys-State
+Reset
+Timer
+Multplier
+EEPROM
+MTP
+RAM
+CPU System - CPU
+DMA
+DSP
+VSUP
+VDDA
+GNDA
+VDDD
+GND
+VTANK
+VTANK
+VSUP
+VSUP
+VDDA
+VDDD
+RTC_ON
+RTC
+ADC_DTA
+ADC_EOC
+
+=== PAGE 3 ===
+3
+珠海佑航科技有限公司
+V
+Pin 排列图
+Pin 定义
+No
+Name
+Type
+Description
+1
+DEBUG
+D_I
+Debug 模式使能，高有效，功能模式下接0
+2
+VDDA
+S
+模拟信号电源5v
+3
+GNDA
+S
+模拟信号地
+4
+AINS
+A_I
+超声波回波信号负极性输入
+5
+AING
+A_I
+超声波回波信号正极性输入
+6
+DRV1
+HV A I
+变换器线圈1
+7
+GNDP
+S
+变换器功率地
+8
+DRV2
+HV A I
+变换器线圈2
+9
+VTANK
+HV_S
+变换器驱动电源输入
+10
+DRVS
+HV_A_O
+变换器中心抽头端
+11
+GNDB
+S
+ESI 总线接口地
+12
+ESI
+HV_A_IO
+ESI 接口输入输出
+13
+ESI_O
+HV_A_O
+ESI 接口输出
+14
+VSUP
+HV_S
+芯片供电电源
+15
+GNDD
+S
+数字电源地
+16
+VDDD
+S
+数字电源1.5v
+17
+UART_RX
+D_I
+多功能脚，串口输入/GPIO
+18
+UART_TX
+D_O
+多功能脚，串口输出/GPIO
+19
+TMS
+D_I
+测试命令输入
+20
+TCK
+D_I
+测试时钟，测试模式下有效
+21
+EP
+S
+散热端接地
+
+=== PAGE 4 ===
+珠海佑航科技有限公司
+4
+1. 极限工作条件
+• 在极限条件下使用将会导致芯片不可恢复的损坏。
+• 短暂极限条件下使用芯片将降低芯片的可靠性。
+• 所指电压参数均是对地（GNDA）的值。
+表格
+1-1:
+极限条件表格
+No.
+Description
+Condition
+Symbol
+Min
+Max
+Unit
+1
+工作电压
+VSUP
+-0.3
+40
+V
+2
+ESI 电压
+ESI,ESI_O
+-24
+40
+V
+3
+ESI 电流
+ESI,ESI_O
+-100
+100
+mA
+4
+数字pin 电压
+(DEBUG,GPIO0,GPIO1)
+VDIG
+-0.3
+1.65
+V
+5
+数字pin 电压
+(DEBUG,GPIO0,GPIO1)
+DEBUG=5v
+VDebug
+-0.3
+1.65
+V
+6
+模拟输入电流值（AINS ，AING）
+IAINS,IAING
+-20
+20
+mA
+7
+内部模拟电压
+VDDA
+-0.3
+5.5
+V
+8
+内部数字电压
+VDDD
+-0.3
+1.65
+V
+9
+超声波驱动Pin 的电压
+VDRVS,VDRV1,V
+DRV2 , VTANK
+-0.3
+40
+V
+10
+芯片结温
+Tj
+-40
+125
+°C
+11
+芯片存储温度（过焊）
+PCBA
+TSTG solded
+-55
+150
+°C
+12
+芯片存储温度（未焊）
+TSTG unsolded
+-55
+125
+°C
+2. ESD and Latch-up
+2.1. ESD 静电保护
+Description
+Condition
+Symbol
+Min
+Max
+Unit
+ESD HBM protection pins ESI
+1)
+VESD(HBM)ESI
+-6
+6
+kV
+ESD HBM protection at all other pins
+1)
+VESD(HBM)
+-2
+2
+kV
+ESD CDM protection at pins near corner
+(Pins 1,5,6,10,11,15,16,20)
+2)
+VESD(CDM)
+-750
+750
+V
+ESD CDM protection at all other pins
+2)
+VESD(CDM)
+-500
+500
+V
+1) According to AEC-Q100-002 (HBM) chip level test
+2) According to AEC-Q100-011 (CDM) chip level test
+2.2. Latch-up
+Latch-up 保护性能符合JEDEC standard JESD 78
+标准
+
+=== PAGE 5 ===
+珠海佑航科技有限公司
+5
+3. Recommended Operating Conditions
+Table 3-1: 推荐的工作条件
+No.
+Description
+Condition
+Symbol
+Min
+Typ
+Max
+Unit
+1
+Recommended supply voltage
+VVSUP,opr
+7.4
+12
+24
+V
+2
+Recommended voltage at pins
+ESI and ESI_O
+VESI ,
+VESI_O
+4
+-
+20
+V
+3
+Transducer resonance
+frequency
+fTransducer
+38
+-
+83
+Khz
+4
+Blocking capacitor for analog
+supply
+CVDDA
+75
+100
+125
+nF
+5
+Blocking capacitor for digital
+supply
+CVDDD
+0.36
+1
+1.25
+uF
+6
+Ambient temperature
+TAMB
+-40
+-
+105
+°C
+4. 电气特性
+• VVSUP= 6V to 24V and TAMB= -40°C to 105°C,
+除非另有所指。
+• Typical values areat VVSUP= 12V and TAMB= 25 °C.
+• Positive currents flow into the device pins.
+• All time values are based on the typical oscillator frequency fCLK,typ
+4.1. 供电电源，
+内部参考电压源及时钟特性
+Table 4 . 1-1 : Electrical Parameters
+No.
+Description
+Condition
+Symbol
+Min
+Typ
+Max
+Unit
+1
+VSUP 电流
+仅CPU 程序
+运行无IO 口
+驱动
+IVSUP
+-
+18
+28
+mA
+2
+VSUP 电流
+in standby mode
+in standby
+mode
+IVSUP_STBY
+-
+-
+10
+mA
+3
+内部5V 模拟LDO
+外接CVDDA
+VDDA
+4.75
+5.0
+5.25
+V
+4
+模拟LDO 短路电流
+VDDA=0
+IVDDA_SHORT
+-50
+-
+-
+mA
+5
+内部数字LDO
+外接CVDDD
+VDDD
+1.35
+1.5
+1.65
+V
+6
+数字LDO 短路电流
+VVDDD=0V
+IVDDD_SHORT
+-100
+-
+-
+mA
+7
+VSUP 低电压复位阈值
+VSUPPOR_H
+VSUPPOR_L
+-
+-
+4.75
+4.5
+V
+8
+VTANK 过电压检测
+VTANKOV_
+H
+24.5
+26.0
+27.5
+V
+9
+系统时钟
+@AMB=25° C
+fCLK
+69.8
+4
+72
+74.1
+6
+MHz
+
+=== PAGE 6 ===
+珠海佑航科技有限公司
+6
+4.2. 驱动变换器
+Table 4. 2-1 :
+驱动变换器电气参数
+No.
+Description
+Condition
+Symbol
+Min
+Typ
+Max
+Unit
+1
+TDR 32 级驱动电流（正常
+模式）
+VDRVS=VTANK -
+2.5V
+软件设置
+IDRV_0( min))
+IDRV_31(Max)
+-
+-
+-190
+-500
+-
+-
+mA
+2
+TDR 32 级驱动电流（诊断
+模式）
+VDRVS<0 .5V
+JTAG 设置
+IDRV_0( min))
+IDRV_31(Max)
+-
+-
+0
+-1.25
+-
+-
+mA
+3
+电流驱动强度步进值
+VDRVS=VTANK -
+2.5V
+软件设置
+IDRV_STEP
+-
+10
+-
+mA
+4
+DRVS 下拉电阻
+VDRVS=0 .2V
+Receive Mode
+RPD_DRVS
+-
+6
+-
+kΩ
+5
+DRV 开关管导通电阻
+Burst Mode
+RSW_DRV1_2
+-
+0.2
+-
+Ω
+4.3. GPIO 接口
+Table 4.3-1: GPIO
+电气参数
+No.
+Description
+Condition
+Symbol
+Min
+Typ
+Max
+Unit
+1
+GPIO 输入电平门限值
+输入模式
+VGPIO_ITH
+VGPIO_ITL
+0.87
+-0.3
+1.8
+0.57
+V
+2
+GPIO 输出电流
+输出模式
+IGPIO_OH
+IGPIO_OL
+1.9
+3.7
+4.8
+7.9
+9.9
+15.
+3
+mA
+3
+上拉电阻
+输入模式
+RGPIO
+-
+150
+-
+kΩ
+4.4. LIN 通讯接口
+Table 4.4-1 : LIN 通道电气参数
+No.
+Description
+Condition
+Symbol
+Min
+Typ
+Max
+Unit
+1
+输入高
+VLIN_ HIGH
+6
+-
+20
+V
+2
+VLOW 检测阈值
+VLIN_LOW_THR
+ES
+VLIN_HIG
+H-1.2
+5
+VLIN_H
+IGH-1
+VLIN_H
+IGH-0
+.75
+V
+3
+LI 信号高低电平差值
+VLIN_ DIF
+1.75
+2
+2.3
+5
+V
+4.5. EEPROM
+Table 4.5: EEPROM 电气参数
+No.
+Description
+Condition
+Symbol
+Min
+Typ
+Max
+Unit
+1
+Size
+sizeEEPROM
+-
+-
+2
+KByte
+2
+数据保持时间
+tDR_EE
+15
+100
+-
+Years
+3
+编程次数
+Enduran
+ceEE
+-
+100
+-
+Cycle
+
+=== PAGE 7 ===
+珠海佑航科技有限公司
+7
+5. 寄存器说明
+5.1. TD R 模块（超声波驱动模块）
+模块用于为超声波芯片提供驱动接口，支持通过DMA或CPU方式传输发波参数数据，
+支持中断生成。
+Table 5. 1-1: 超声波驱动模块寄存器总览，基地址为0 x 2 0 0 0 0 0 0 0 UL
+偏移地址
+名称
+描述
+0x00
+TDR_CTRL
+控制寄存器
+0x04
+TDR_BUFF
+0x08
+TDR_STATE
+状态寄存器
+Table 5. 1-2: TD R_ CTRL 寄存器描述，默认值0 x 0
+Bits
+Description
+Default
+R/W
+31
+Reversed
+0x0
+R/W
+30:29
+Bias_sel
+Driver bias select:
+2'b00: default
+2'b01: 2Xdefault
+2'b10: 0.1Xdefault
+2'b11: 1.1Xdefault
+0x0
+R/W
+28
+Bias_tsten
+Bias test control:
+0b: bias test disable
+1b: bias test enable
+0x0
+R/W
+27:25
+Bias_trim
+Driver bias trimming: I_bias=V/R_Trimming
+3'b000: 31R
+3'b001: 29R
+3'b01x: 25R
+3'b1xx: 17R
+0x0
+R/W
+24
+Bias_pd:
+Bias enable control:
+0b:enable bias
+1b:power down bias
+0x0
+R/W
+23
+Diag_en
+Diagnostic mode control:
+0b:DIAG mode disable
+1b :DIAG mode enable
+0x0
+R/W
+22:18
+Tstmux
+TDR_TSTOUT signal select:
+5'b00000: TDR bias test
+5'b00001: DSI_T
+5'b00010:GNDD
+5'b00100:GNDB
+5'b01000:GNDP
+5'b10000:AVSS
+0x0
+R/W
+17
+Drv_pd
+1'b0: Power down current driver
+0x0
+R/W
+
+=== PAGE 8 ===
+珠海佑航科技有限公司
+8
+b
+d
+b
+d
+d
+16
+Drv_sta
+DRIVER TEST control:
+1'b0: DRIVER normal mode
+1'b1: DRIVER test
+0x0
+R/W
+15:6
+Reversed
+0x0
+R/W
+5
+Isrc : 1 normal 0:test mode
+Transducer driver current source selection:
+1b:reduced current mode
+0b:normal mode
+4:3
+Reversed
+0x0
+R/W
+2
+drv_en: 1 en 0 dis
+0x0
+R/W
+1
+dma mode en
+0: cpu 1: dma
+0x0
+R/W
+0
+enable：模块使能
+enable: 1 disable: 0
+0x0
+R/W
+Table 5. 1-3: TD R_ BUFF 寄存器描述，默认值0 x 0
+Bits
+Description
+Default
+R/W
+15
+drv1_en、drv2_en极性控制
+1：正极性0：负极性
+0x0
+W
+14
+0: drv1_en 、drv2_en同极性，1：差分
+0x0
+W
+13:9
+电压分级控制0 - 16
+0x0
+W
+8:0
+计数位，可配置
+0x0
+W
+Table 5. 1-4: TD R_ STATE 寄存器描述，默认值0 x 0
+Bits
+Description
+Default
+R/W
+31:3
+Reversed
+0x0
+RO
+2
+drvs_sta
+Transducer driver center tap diagnosis
+0b:normal operation
+1b:malfunction during burst detected
+0x0
+RO
+1
+drv2_sta
+Transducer driver 2 diagnosis
+0b:normal operation
+1b:malfunction during burst detected
+0
+drv1_sta
+Transducer driver 1 diagnosis
+0b:normal operation
+1
+:malfunction
+uring
+urst
+etecte
+
+=== PAGE 9 ===
+珠海佑航科技有限公司
+9
+5.2. ASP 模块（模拟信号处理控制器）
+模拟信号处理控制器用于为随后的数字处理准备传感器回波信号。
+Sigma-Delta ADC，16bit有效位调整为32bit，其中最高bit是符号位，为1是负电
+压。支持触发DMA搬运数据，支持软件启动采样，支持内部TDR模块触发。
+Table 5.2-1: ASP 模块寄存器总览，基地址为0 x 2 0 0 0 4 0 0 0 UL
+偏移地址
+名称
+描述
+0x00
+ASP_CTRL
+控制寄存器
+0x04
+ASP_ ADC_ EN
+0x08
+reserve
+0x0C
+ASP_ADC_DATA
+ADC数据寄存器
+0X10
+ASP_CTRL1
+控制寄存器
+Table 5.2-2: ASP _ CTRL 寄存器描述，默认值为0 x 0
+Bits
+Description
+Default
+R/W
+31
+Current_mirror_en
+Current miorror enable (ESI):
+1'b0: Current miorror disable
+1'b1: Current miorror enable
+0x1
+R/W
+30:29
+Ada_dachl_sigsel (TEST)
+2'b00:AUX_MUX_DAC_CHANNEL connect to gnd
+2'b01:AUX_MUX_DAC_CHANNEL connect to
+GPIO0_ANA
+2'b10:AUX_MUX_DAC_CHANNEL connect to DAC
+output
+2'b11:AUX_MUX_DAC_CHANNEL connect to MPT
+current
+0x0
+R/W
+25:18
+Aux_dac0
+DAC0 8bit code (DAC)
+range:0~DVDD
+LSB=6mV
+0x0
+R/W
+17
+Clkwd_tstrn
+WD clock test enable (TEST)
+1'b0: Disable
+1'b1:Enable
+0x0
+R/W
+16
+Clk72_tstrn
+72MHz clock test enable (TEST)
+1'b0: Disable
+1'b1:Enable
+0x0
+R/W
+15
+Gpio_clk_sel_dig
+CLK_TDA connect to GPIO analog signal (TEST)
+1'b0: disconnect
+1'b1: connect
+0x0
+R/W
+13
+Asp_diag_en
+Gain reduction for diagnosis purposes
+1'b0: gain reduction off
+1'b1: gain reduction on
+0x0
+R/W
+12:9
+Asp_gain
+Analog gain configuration:
+4'b0000~4‘b1010 ,45dB~65dB, 2dB/step
+4'b0000:45dB
+4'b0001:47dB
+0x0
+R/W
+
+=== PAGE 10 ===
+珠海佑航科技有限公司
+10
+,
+4'b1001:63dB
+4'b1010:65dB
+4'b1011~4'b1111:unmapping
+8
+Asp_ en
+ASP enable:
+1'b0: ASP disable
+1'b1: ASP enable
+0x0
+R/W
+7
+Lpf_en
+LPF enable:
+1'b0: LPF disale
+1'b1:LPF enable
+0x0
+R/W
+6
+Lpf_short
+LPF output short:
+1'b0: LPF work
+1'b1: LPF output short to VCM
+0x0
+R/W
+5
+Lpf_tsten
+1'b1:LPF output connect to test path (TEST)
+0x0
+R/W
+4
+Pga_test_en
+1'b1:PGA output connect to test path (TEST)
+0x0
+R/W
+3
+Amp_tst_en
+1'b1:TIA output connect to test path (TEST)
+0x0
+R/W
+2:0
+tstmux
+0x0
+R/W
+Table 5.2-3: ASP_ADC_ EN 寄存器描述，默认值为0 x 0
+Bits
+Description
+Default
+R/W
+[1]
+Adc_dis_en
+ADC采样使能开关，启动采样前需先使能
+0x0
+R/W
+[0]
+Adc_ en
+软件模式启动采样
+0x0
+R/W
+Table 5. 2-4: ASP _ADC_ DATA 寄存器描述，默认值为0 x 0
+Bits
+Description
+Default
+R/W
+[31:0]
+Adc_data
+0x0
+RO
+5.3. ESI 接口模块
+该模块是超声波雷达传感器端的通信模块，集成了3个通信接口ESI 、LIN、IO09 ，只能
+工作于某一种接口。
+
+ESI：半双工单线异步串行接口，主机发电压信号，从机应答电流编码，支持自动寻址
+
+LIN：LIN从机，支持LIN 2.0标准，以中断方式收发数据，支持同步中断
+
+IO09：形似单总线接口，下降沿触发中断，需搭配定时器中断进行接收数据与应答主机
+Table 5.3-1: IO 模块寄存器总览，基地址为0 x 2 0 0 0 8 0 0 0 UL
+偏移地址
+名称
+描述
+0x00
+ESI_STATE_CTRL1
+状态转换相关配置
+0x04
+ESI_STATE_CTRL2
+状态转换相关配置
+0x08
+ESI_ CTRL
+内部功能使能信号
+0x0C
+ESI_ DATA_ BUF
+Response_data
+
+=== PAGE 11 ===
+珠海佑航科技有限公司
+11
+Table 5.3-2: ES I_ STATE_ CTRL 1 寄存器描述，偏移值位0 x 0
+Bits
+Description
+Default
+R/W
+[31:16]
+ESI_RSP_PERIOD（用于判断crm区rsp阶段时长单
+位rsp_clk_h）
+16’b0
+RW
+[15:0]
+ESI_PDCM_PERIOD（pdcm模式单个tmslt时长单位
+rsp_clk_h）
+16’b0
+RW
+Table 5.3-3:
+ES I_ STATE_ CTRL 2 寄存器描述，偏移值位0 x 4
+Bits
+Description
+Default
+R/W
+[31:16]
+ESI_CRM_PERIOD（判断进入crm状态时长单位clk
+为一个bit数据传输的1/4）（读时为同步后微调时间）
+16’b0
+RW
+[15:0]
+ESI_DM_PERIOD（dm状态时长单位Dm_clk_h）
+16’b0
+RW
+Table 5. 3-4:
+ES I_ STATE_ CTRL 3 寄存器描述，偏移值位0 x 8
+Bits
+Description
+Default
+R/W
+[30]
+Pdcm_req_en
+向MST请求一次通信，需先确保自身处于IDLE态
+1’b0
+RW
+[29]
+Idle_flg
+IDLE状态的标志，1 ：IDLE态
+1’b0
+RW
+[28:27]
+Wake_sel(00: MASTER_V
+01: LIN
+10. MASTER_V OR LIN
+11. 不唤醒)
+2’b0
+RW
+[26]
+Esi_en（1 ：使能0：不使能）
+1’b0
+RO
+[25]
+Rsp_en_o（rsp使能输出1：使能0 ：不使能）
+1’b0
+RO
+[24]
+Rsp_en_i（rsp使能输入1：使能0 ：不使能针对crm模式
+的rspen）
+1’b0
+RW
+[23:20]
+Addr2（匹配地址2
+第二个4位地址匹配值）
+4’b0
+RW
+[19:16]
+Addr1（匹配地址1
+第一个4位地址匹配值）
+4’b0
+RW
+[15:0]
+Brc_period(pdcm pulse用于判断状态转换时长
+单位：clk 必须大于crm_period*4)
+16’b0
+RW
+Table 5.3-5:
+ES I_ STATE_ CTRL4 寄存器描述，偏移值位0 xc
+Bits
+Description
+Default
+R/W
+[31:16]
+rsp_clk_h（rsp数据每笔发送间隔时长
+单位：clk）
+16’b1
+RW
+[15:0]
+Dm_clk_h（dm数据每笔发送间隔时长
+单位：clk）
+16’b1
+RW
+
+=== PAGE 12 ===
+珠海佑航科技有限公司
+11
+Table 5. 3-6:
+ES I_ STATE_ CTRL 5 寄存器描述，偏移值位0 xc
+Bits
+Description
+Default R/W
+[31:26]
+Error_rpt（中断产生原因
+1 ：crm状态下comd数据错误
+10 ：pdcm状态下发送时间不足
+11 ：dm模式下时间状态异常（不足或超时）
+100：start状态超时，未能进入状态转换
+101 ：crm模式数据准备完成
+110 ：dm模式该slv已经分配地址
+111: DM模式寻址失败
+4’b0
+RW
+[25]
+Inter_en
+1’b0
+RW
+[24]
+dm_en
+1’b0
+RW
+[23]
+ESI_MOD_SEL(0:ESI 1 :09）当该值为1时，中断动作为读取1c
+1’b0
+RW
+[22]
+redm_en（dm状态重新进入使能
+1：使能
+0：不使能）
+1’b0
+RW
+[21]
+Filter_en（master信号滤波使能
+1：使能
+0：不使能）
+1’b0
+RW
+[20]
+Adr_mux_en（地址匹配使能
+1：使能
+0：不使能）
+1’b1
+RW
+[19:16] Timsl_num（当前使用的最大的slot区间序号）
+4’b0
+RW
+[15:0] Timsl（表示slot区间
+16个区间对应位置置1则该区间发送数据）
+16’b0
+RW
+Table 5. 3-7: ES I_ STATE_ CTRL 6 寄存器描述，偏移值位0 x 1 4
+Bits
+Description
+Default
+R/W
+[31:24]
+Out_i_high（输出电流最高值）
+8’b0
+RW
+[23:16]
+Enc_o（电流输出编码）
+8’b0
+RW
+[15:8]
+Enc_1（电流输出编码）
+8’b0
+RW
+[7:0]
+Enc_2（电流输出编码）
+8’b0
+RW
+Table 5. 3-8: ES I_ RSP_ DATA 寄存器描述，偏移值位0 x 1 8
+Bits
+Description
+Default
+R/W
+[31:0]
+Rsp_data（rsp数据）
+32’b0
+RW
+
+=== PAGE 13 ===
+珠海佑航科技有限公司
+12
+Table 5. 3-9: ES I_ IO_ 0 9 寄存器描述，偏移值位0 x 1 c
+Bits
+Description
+Default
+R/W
+[31]
+Lin_en（lin使能）
+1’b0
+RW
+[30:29]
+Interrupt_09_state(mod_sel为09中断信号状态）
+2’b0
+RW
+[28]
+Error_flag(lin error)
+1’b0
+RW
+[27]
+SYNC_FLAG（lin 同步状态flag）
+1’b0
+RW
+[26:25]
+Rate_sellin模式速率选择
+00 19200bps（default）
+01 9600bps
+10 4800bps)
+2’b00
+RW
+[24]
+Tx_en_i(o) （tx模式使能0 不使能1使能）
+1’b0
+RW
+[23:16]
+Rx_data（lin模块output）
+8’b0
+RW
+[15:8]
+Tx_data(lin模块input)
+8’b0
+RW
+[7]
+IO_09_MOD_SEL(0:lin
+1:09)
+1’b1
+RW
+[6]
+Io_09_int_en（mod_sel 为09时中断使能）
+1’b0
+RW
+[5]
+Io_09_en_2
+1’b0
+RW
+[4]
+Io_09_en_1
+使用LIN 、IO09 ，该bit都必须设置
+1’b0
+RW
+[3]
+Io_09_o_2
+1’b0
+WO
+[2]
+Io_09_o_1（mod_sel为lin时为lin输出）
+1’b0
+WO
+[1]
+Io_09_i_2
+1’b0
+RO
+[0]
+Io_09_i_1（mod_sel为lin时为lin输入）
+1’b0
+RO
+该寄存器集中控制IO09 、LIN从机
+该LIN本质上只有RX中断，内部RX、TX有电气连接，因而TX也会触发RX中断
+LIN还有同步中断，状态是SYNC_FLAG
+Table 5. 3-10: COM D_ REG 寄存器描述，偏移值位0 x 2 0
+Bits
+Description
+Default
+R/W
+[31:0]
+Comd_reg（crm模式comd数据）
+缓存MST发送过来的CRM命令包
+32’b0
+RO
+
+=== PAGE 14 ===
+珠海佑航科技有限公司
+14
+Table 5.3-11 : ES I_ CTRL 寄存器描述，偏移值位0 x 2 4
+Bits
+Description
+Default
+R/W
+[17]
+ESI_TX_EN_DIG
+DSI TX enable:
+1'b0: DSI TX disable
+1'b1: DSI TX enable
+RW
+[16:15]
+ESI_ TX_TSTSEL_DIG
+RW
+[14]
+ESI_TX_DAT_LSB_EXT_DIG
+adjust DSI TX current(LSB)
+RW
+[13:11]
+ESI_BIAS_SEL_DIG
+RW
+[10:7]
+ESI_ RX_TSTSEL_DIG
+RW
+[6]
+ESI_AUTO_ADR_CMP_EN_DIG
+DSI Auto-Adress comparator enable
+RW
+[5]
+ESI_AUTO_ADR_EN_DIG
+DSI Auto-Adress enable:
+1'b0: DSI Auto-Adress disable
+1'b1: DSI Auto-Adress enable
+RW
+[4]
+ESI_EN_DIG
+DSI enable:
+1'b0: DSI disable
+1'b1: DSI enable
+RW
+[3]
+ESI_RX_BYP_EN_DIG
+RW
+[2]
+ESI_RX_FLT_EN_DIG
+RW
+[1]
+ESI_RX_ICTL_DIG
+adjust RX/LIN loop current
+RW
+[0]
+ESI_ BIAS_TSTEN_DIG
+RW
+Table 5.3-12 : LIN_ SYNC 寄存器描述，偏移值位0 x 2 4
+Bits
+Description
+Default
+R/W
+[15:0]
+Lin_num_sync
+LIN接口起效下，LIN对同步帧计数的计数值，可用于同步
+系统时钟
+RW
+5.4. UART 模块
+该模块是用来输出调试信息使用
+Table 5.4-1: UART _ CTRL 寄存器描述，基地址为0 x 2 0 0 0 C 0 0 0 UL , 偏移值位0 xe 8
+Bits
+Description
+Default
+R/W
+[31:12]
+Cnt_num
+16’b1
+RW
+[10:8]
+inter_rpt01:dma情况下闲置时长中断
+10.数据发送或接收完成中断（非dma模式）
+11.错误中断（有stop值发送错误与rxdata读取不及时两种
+情况）
+100 同步完成)
+1’b0
+RO
+[7]
+Sync_en
+1’b0
+RW
+[6]
+inter_en
+1’b0
+RW
+[5]
+dma_en
+1’b0
+RW
+[4]
+uart_en
+1’b0
+RW
+Rate_sel
+00:38400
+2’b0
+RW
+
+=== PAGE 15 ===
+珠海佑航科技有限公司
+14
+[3:1]
+01:19200
+10:9600
+11:115200
+100:1m
+[0]
+Tx_en_i
+1’b1
+RW
+Table 5.4-2: TX_ DATA 寄存器描述，偏移值位0 x ec
+Bits
+Description
+Default
+R/W
+[7:0]
+Tx_data
+8’b0
+RW
+Table 5.4-3: RX_ DATA 寄存器描述，偏移值位0 xe 0
+Bits
+Description
+Default
+R/W
+[7:0]
+rx_data
+8’b0
+RW
+Table 5.4-4: SYNC_ NUM 寄存器描述，偏移值位0 xe4
+Bits
+Description
+Default
+R/W
+[15:0]
+Sync_num
+15’b0
+RO
+6. 功能描述
+6.1. 工作模式
+芯片工作模式如下图所示
+Reset
+Start of 
+application
+Programe 
+mode
+Safe State
+IDLE
+Standby
+mode
+Measurement
+mode
+Diagnostic
+mode
+PWR_ON
+Programe exit
+Programe Fail
+Programe 
+enable
+Valid data
+Start Pass
+Start Fail
+Meas Fail
+Diag Fail
+Diag Pass
+Meas Pass
+CMD:Sart_Meas
+CMD:ENTER
+_Standby
+CMD:Exit_Sta
+ndby
+CMD:Start_Di
+ag
+Empty data
+6.1.1.Reset
+芯片上电后进入Reset模式，在Reset模式下整个芯片处于复位状态，传感器等各个模块的输出处于
+复位状态。当复位结束后，如果JTAG的Program enable 有效，则进入下一个状态Program mode，反
+之检测芯片是否已经已编程，有编程的话就进入用户应用程序模式Start of application，否则就似乎
+空片并保持在空片状态下。
+
+=== PAGE 16 ===
+珠海佑航科技有限公司
+14
+6.1.2.Programe mode
+在Programe mode模式下，芯片将进入数据编程状态，此时解析来自JTAG口进来的TMS命令不同，
+进行相应的数据编程，不管那种编程，需要将编程程序通过JTAG口下载到芯片的Sram里并启动cpu
+从指定的Sram程序入口处执行，通过更新不同的应用程序完成相应的编程功能，这里的编程是指
+借助于程序在Sram里执行对MTP进行在线编程及校验。一般这种模式用在出厂数据烧录用户应用程
+序，烧录成功后，状态将进入到Reset状态，用户应用程序区会被保护，以确保在非Program mode
+模式下不被非法改写或擦除。
+6.1.3.Start of application
+该模式执行用户应用程序代码。在此状态下，CPU先进行内存测试保证Sram是可靠的状态，内存测
+试Pass后进行系统初始化程序，设置外设工作模式及配置重要的变量和寄存器以及ESI3接口，确保
+ESI3接口可以和主机通讯，具体的过程由嵌入式软件和硬件完成。如果检测到错误，软件将芯片切
+换到安全状态Safe state。如果检测没有错误则进入下一个状态IDLE mode。
+6.1.4.IDLE mode
+在IDLE mode 模式下，芯片等待主机端输入的ESI3命令，如果收到有效的命令则解析命令并进入相
+应的命令服务程序。
+6.1.5.Measurement mode
+在该状态下实现了超声各个功能测量任务序列，该任务序列由嵌入式软件控制。典型的测量方法
+顺序(或称测量周期)可能如下:
+1. 接口接收下一系统级别的命令，由软件进行评估和处理。
+2. 当有直接测量指令时，超声波换能器的压电陶瓷会被驱动激发并发出超声波，通过空气传播。
+3. 如果这发射的超声波碰到障碍物，它们就会反射回传感器上。此时换能器充当接收器接收回波
+信号并被FEI通道放大和ADC转换成数字量给CPU做分析。
+4. 在接收测量命令的情况下，换能器充当接收器，接收来自其他传感器的超声波回波信号并转换
+成电信号。
+5. 接收到的回波信号先经模拟前端输入到PGA进行放大，通过选择合适的增益档位，可以得到一个
+幅度合适的回波信号，并可以选择是否需要经滤波器进行滤波还是直通，最后这个回波信号经ADC
+转换成数字量给CPU，用软件进行算法分析接收到的信号，并判断该信号是否是由障碍物导致的回
+波信号。
+6. 在最后一步中，由软件解析到的有关被探测到的超声波回波的信息(例如距离、高度、编码信息
+等)通过ESI接口被打包送回主机端。
+6.1.6.Diagnostic mode
+除了测量模式外，芯片还提供了一个额外的诊断模式，该模式由嵌入的软件输入和控制。各种诊
+断选项可用于检查许多可能的故障。例如，芯片的超声波驱动接口和外部的sense模组的互联是否
+有断路、短路故障，通过发送特殊频率的信号检查超声波传感器的机械缺陷以及结垢、结冰情况。
+根据检测到的故障类型，可以向主机端提供具体故障信息。与测量模式相比，此模式下的诊断测
+试不能与测量序列同时执行，因此需要在非测量时间进行测试，这个是由主机来安排和调度的。
+6.1.7.Standby mode
+当芯片一定时间没有收到命令时，可以切换到待机模式(例如，如果传感器不需要测量序列)。在
+这种模式下功耗将会大大降低。
+6.1.8.Safe state
+在任意一种模式下，检测到错误时，无论是硬件还是嵌入软件引起的，将进入安全状态。包括是
+系统初始测试失败、正常测量时的异常发生及诊断时诊断失败。故障信息通过ESI3接口报告给主
+机，主机将会依据安全策略选择关闭整个超声波系统或有故障的那个传感器模块。
+
+=== PAGE 17 ===
+珠海佑航科技有限公司
+14
+6.2. 测量
+芯片由嵌入式微控制器核心和各个测量模块组成，能够实现车用超声波传感器测试系统所需要的
+所有功能，下表将总结所有测试相关功能及其所需的硬件和软件支持。
+Table 5.1.2-1: 测量功能列表
+Function
+Hardware
+Software
+Burst 频率产生
+由软件触发，硬件实现Burst模式所
+需的时钟频率、类型。
+软件设置脉冲的数量、脉冲类
+型、频率。
+传感器功率驱动
+硬件TDR功率模块驱动变压器进行能
+量变换。
+软件可以设置驱动电流大小。
+模拟回波信号处理
+模拟前端输入通道PGA+ADC
+软件可以选择PGA的增益来匹
+配输入的回波信号的幅值。
+数字信号分析
+- 振铃信号频率测量
+- 振铃信号时间测量
+模拟前端输入通道PGA+ADC
+软件测量频率以及衰减过程中
+的振铃时间长度
+回波包络线分析
+模拟前端输入通道PGA+ADC
+软件算法实现回波信号的包络
+线处理，包括基于DSP的固定
+频率信号的带宽、回波信号的
+滤波系数、软件数字放大、增
+益校准。
+标准回波信号分析
+基于DSP实现的软件算法分析
+包括
+-数字放大器
+-灵敏度时间控制(STC)
+-快速时间常数(FTC)
+-静态阈值生成(STG)
+-自动阈值生成(ATG)
+回波信号检测及包络线
+分析
+基于DSP实现的软件算法进行
+-回波信号的幅值分析（包络线
+获取）及阈值曲线选择。
+-回波脉冲检测，测量参数可配
+。
+内部模拟信号采集
+ADC
+软件配置ADC采集通道选择要
+转换的模拟输入信号，并将结
+果以DMA方式写到Sram里。
+诊断功能
+硬件需要
+软件需要
+
+=== PAGE 18 ===
+珠海佑航科技有限公司
+14
+7. 包装信息
+芯片尺寸
+包装示意图
+Tray Dimensions
+所有照片仅供参考，外观以产品为准

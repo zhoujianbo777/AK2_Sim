@@ -1,0 +1,3319 @@
+
+=== G32A217 PAGE 84 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 83 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+1 
+DSI_WAKE 
+R/W 
+0 
+待机状态唤醒事件 
+0 
+POR_WAKE 
+R/W 
+0 
+待机状态唤醒事件 
+表格 171 SYSC_IRQMASK (0x34) 中断屏蔽寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:9 
+保留 
+8:0 
+MASK 
+R/W 
+0 
+每一位分别对应IRQ_STATUS 寄存器9 个中断的使能状态。 
+1：该中断已使能 
+0：该中断未使能 
+表格 172 SYSC_IRQEN (0x38) 中断使能寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:3 
+保留 
+2:0 
+VEN 
+W 
+0 
+用于使能中断。例如向该寄存器写入1，则SYSC_IRQMASK 寄
+存器的第 1 位会被置1。 
+表格 173 SYSC_IRQDIS (0x3A) 中断禁止寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:3 
+保留 
+2:0 
+VDIS 
+W 
+0 
+用于禁止中断。例如向该寄存器写入1，则SYSC_IRQMASK 寄
+存器的第 1 位会被清0。 
+表格 174 SYSC_IRQPRIO (0x3C) 中断嵌套寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:4 
+保留 
+3:0 
+PRIO 
+R/W 
+9 
+中断向量嵌套。软件可以把当前的中断向量写入该寄存器，则只有
+更高优先级（编号更小）的中断可以嵌套。 
+表格 175 SYSC_IRQNUM (0x3E) 中断编号寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:4 
+保留 
+3:0 
+NUM 
+R/W 
+9 
+读：如果当前有中断发生，该寄存器返回当前发生的最高优先级
+（最小编号）的中断。如果当前未发生中断，则返回第一个未使用
+的中断编号。 
+写：写入该寄存器用于清除对应的中断事件。 
+ 
+DSI3 通信接口 
+此IC 使用DSI3（Distributed System Interface 3rd Generation）通信接口。该接口可以用于点
+对点拓扑，由单个主机和单个从机组成。也可以用于一个主机和多个从机的总线拓扑。该接口提
+供了一种高效的双向通信方案。前向通道定义了主机到从机的通信，而反向通道定义了从机到主
+机的通信。前向和反向通道都以半双工方式运行。为了优化前向和反向通道的性能以满足应用的
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 85 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 84 
+需求，提供了两种通信模式。由于所有通信都由主机发起，所以所有模式都是同步的。 
+4.13.1 物理层 
+DSI3 模块包含接收和发送控制逻辑来进行通信。此外，从机位置自动检测（自动寻址）功能允
+许自动分配传感器地址。 
+图 34 DSI3 物理层 
+R1
+∫
+处理
+逻辑
+CPU访问
+DSII
+DSIO
+VSUP
+自动寻址
+接收器
+发送器
+GNDB
+处理
+逻辑
+处理
+逻辑
+ 
+接收器 
+命令接收模块将DSI 引脚上的电压变化转换为数字脉冲序列，以便于解码。当比较器输出为低
+时，会检测到命令的开始。比较器输出是计数器的输入，该计数器以内部振荡器频率更新。控制
+逻辑监视计数器输出，并生成软件解码所需的信号。 
+发送器 
+发送模块将两个数字信号转换为两个供电调制电流。响应电流的产生方式是，无论是传输
+IDSI_RESP 电流还是传输2×IDSI_RESP 电流，上升时间和下降时间都是相同的。 
+自动寻址 
+这项功能允许在无需手动干预或通过引脚编址的情况下，即插即用的直接使用功能相同的传感器
+从机。在系统启动时，主机会自动确定传感器在总线上的位置并分配相应的地址。 
+4.13.2 通信模式 
+此IC 支持DSI3 的3 种通信模式： 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 86 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 85 
+ 
+命令和响应模式（Command and Response Mode，CRM） 
+ 
+定期数据收集模式（Periodic Data Collection Mode，PDCM） 
+ 
+发现模式（Discovery Mode，DM） 
+4.13.2.1 CRM 模式 
+命令和响应模式（CRM）用于主机和从机之间的数据包交换。CRM 允许读取和写入从机内存，
+并对设备进行控制（例如启动新的测距过程）。 
+下图介绍了CRM 模式： 
+图 35 CRM 模式 
+VDSI_HIGH
+ VDSI_LOW
+ECU → Sensor
+ tDSI_BIT
+时间 
+0V
+32位命令
+2*IDSI_RESP
+IDSI_RESP
+ Sensor → ECU
+时间
+IDSI_Q
+32位应答
+ tDSI_CHIP
+ tDSI_SYMBOL
+命令开始
+tDSI_RESP_CRM
+ 
+命令开始之前有一个静默时间tDSI_END。第一个从VDSI_HIGH 到VDSI_LOW 的转换表示命令开始。命
+令阶段和响应阶段之间有确定的时间延迟tDSI_RESP_CRM。 
+4.13.2.2 PDCM 模式 
+定期数据收集模式（PDCM）用于在反向通道进行大量数据传递（例如传输测距结果）。 
+下图介绍了PDCM 模式： 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 87 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 86 
+图 36 PDCM 模式 
+VDSI_HIGH
+ 
+VDSI_LOW
+ECU → Sensor
+tDSI_BIT
+0V
+2 * IDSI_RESP
+IDSI_RESP
+  Sensor → ECU
+IDSI_Q
+tDSI_CHIP
+ tDSI_SYMBOL
+命令开始
+tDSI_CHIP
+ tDSI_SYMBOL
+tDSI_SYNC_PERIOD
+tDSI_RESP_PDCM
+Frame 1
+Frame 2
+时间
+时间
+ 
+初始的VDSI_HIGH 到VDSI_LOW 的转换表示命令开始。对于反向通信，多个数据组成数据包，然后作
+为TDMA 帧发送给主机。 
+4.13.2.3 Discovery 模式 
+Discovery 模式允许在无需手动干预或通过引脚编址的情况下，即插即用的直接使用功能相同的
+传感器从设备。嵌入式软件可以随时请求进入Discovery 模式，该请求可以根据需要重复多次。 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 88 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 87 
+图 37 Discovery 模式 
+电压
+Master
+检测电流
+Slave 4
+发送电流
+Slave 4
+检测电流
+Slave 1 接受地址 0100
+Slave 2 接受地址 0011
+Slave 3 接受地址 0010
+Slave 4 接受地址 0001
+-2*IRESP
+-2*IRESP
+-2*IRESP
+-2*IRESP
+-2*IRESP
+-2*IRESP
+tDISC_DELAY
+tDISC_PERIOD
+IRESP
+tDISC_PULSE
+-2*IRESP
+tDISC_ACCEPT
+-2*IRESP
+tDISC_ACCEPT
+Slave 3
+发送电流
+Slave 3
+检测电流
+Slave 2
+发送电流
+Slave 2
+检测电流
+Slave 1
+发送电流
+Slave 1
+检测电流
+ 
+Discovery 模式的执行过程如下： 
+ 主机发送Discovery 命令以启动Discovery 模式。 
+ 经过延时tDSI_DISC_DELAY 后，所有从机激活它们的电流输出，直到2×IRESP。 
+ 每个从机都有一个电阻，用来监测通过它的电流： 
+ 
+如果电流高于IDSI_DISC_THRES，它将停止其响应电流，将其物理地址计数器加1，并等待
+下一个“发现命令”脉冲。 
+ 
+如果电流低于IDSI_DISC_THRES，从机将继续在时间tDSI_DISC_ACT 内将电流增加到2×
+IRESP，并保持电流2×IRESP 直到响应时间达到tDSI_DISC_ACCEPT。 
+ 
+经过tDSI_DISC_ACCEPT 时间后，如果设备没有检测到IDSI_DISC_THRES 或更高的电流，该设备
+接受物理地址1 并停止其响应电流。 
+ 经过预定义的周期后，主机发起下一个“发现命令”。 
+ 从机重复步骤2 和3，下一个从机接受其地址计数器中的地址。 
+ 主机重复步骤4，直到总线上的所有设备都分配了地址。 
+地址验证 
+为了验证地址，在Discovery 模式期间可以独立测量总线电流。通过设置
+DSI_CTRL[RESET_RCC] = 1 可以激活Discovery 模式电流比较器。 
+4.13.2.4 通信模式切换 
+DSI3 通信模式是通过 DSI_CTRL[MODE] 来设置的。软件可以控制这些位的状态，意图是主机
+设备可以通过发送适当的命令（软件实现）来启动模式切换： 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 89 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 88 
+ 
+在CRM 模式下运行时，用户定义的命令可用于切换到PDCM 模式。 
+ 
+在PDCM 模式下运行时，预期的PDCM 消息可以通过CRM 消息替代，以实现模式切
+换。在PDCM 模式下如果收到的CRM 消息，将产生PDCM 错误事件，但同时该消息
+将被解码，并且将会切换到CRM 模式。在这种情况下，CRM 消息会被正常处理。 
+4.13.3 数据交换 
+4.13.3.1 前向通道（FCC）数据编码 
+下图显示了在CRM 命令中，主机发送的数据位，使用曼彻斯特（Manchester）编码。 
+图 38 前向通道数据编码 
+VDSI_HIGH
+VDSI_LOW
+0V
+0 0
+0 1
+tDSI_BIT
+1 0
+1 1
+ECU → Sensor
+时间
+ 
+从机检测VDSI_HIGH 与VDSI_LOW 电压之间的变化，用于命令解码和时钟同步。命令格式和响应格式
+由软件定义，并支持CRC 校验。 
+4.13.3.2 反向通道（RCC）数据编码 
+按照DSI3 协议标准，反向通道首先把数据半字节（Nibble，4 位）编码成符号（Symbol），然后
+Symbol 被编码成电流信号。在1 个Symbol 内包含了3 个连续的Chip，由3 段不同的电流水平
+来表示。下图显示了芯片传输3 个Symbol（9 个Chip）数据包（12 个数据位）的示例。 
+图 39 反向通道数据编码 
+2*IDSI_RESP
+IDSI_RESP
+IDSI_Q
+1   2   1
+1   0   1
+2   0   1
+0mA
+Chip
+1st    2nd    3rd
+Symbol
+ 
+符号（Symbol）的数值总共有27 种组合，以空电流水平IDSI_Q 开始的组合被舍弃。在剩余的18
+个Symbol 中，有两个Symbol 分别包含了3 个相同的Chip，它们也被舍弃。剩余的16 个符号
+都以非空电流水平开始，并且至少有一个转换。这些特性保证任何响应数据包的开始都有一个电
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 90 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 89 
+流转换，在每个Symbol 中至少有一个转换。每个Symbol（3 个Chip）编码了4 位的信息。下
+表显示了Symbol 编码。 
+表格 176 DSI3 符号（Symbol）编码 
+第1 个Chip 
+第2 个Chip 
+第3 个Chip 
+编码后的数据（4 位） 
+1 
+1 
+0 
+0000 (0x0) 
+2 
+1 
+1 
+0001 (0x1) 
+1 
+0 
+2 
+0010 (0x2) 
+2 
+0 
+2 
+0011 (0x3) 
+1 
+0 
+0 
+0100 (0x4) 
+2 
+1 
+2 
+0101 (0x5) 
+1 
+1 
+2 
+0110 (0x6) 
+2 
+0 
+1 
+0111 (0x7) 
+2 
+2 
+0 
+1000 (0x8) 
+2 
+1 
+0 
+1001 (0x9) 
+1 
+2 
+2 
+1010 (0xA) 
+2 
+2 
+1 
+1011 (0xB) 
+1 
+2 
+0 
+1100 (0xC) 
+2 
+0 
+0 
+1101 (0xD) 
+1 
+0 
+1 
+1110 (0xE) 
+1 
+2 
+1 
+1111 (0xF) 
+4.13.3.3 反向通道（RCC）电流波形 
+反向通道电流的波形受以下因素影响： 
+ 
+通过参数 DSI_CFG[CHIP_TIME] 配置每个Chip 的持续时间（Chip Time）。 
+ 
+通过参数 DSI_ANA_CFG[CURRENT_SLOPE] 修改电流变化的斜率。应根据 
+DSI_CFG[CHIP_TIME] 来选择不同的 DSI_ANA_CFG[CURRENT_SLOPE]。 
+ 
+建议设置 DSI_ANA_CFG[CURRENT_CURVE]=0。此参数生成圆形的电流波形。 
+ 
+建议设置 DSI_ANA_CFG[CURRENT_OFFSET]=1。如果此参数大于0，则会产生小的
+静态电流，使上升沿和下降沿对称。 
+注意：外部电路也会影响电流波形，这对通信的稳定性和电磁兼容(EMC)性能有影响。 
+下面两个图展示了DSI_ANA_CFG[CURRENT_SLOPE]和DSI_ANA_CFG[CURRENT_CURVE]
+的例子： 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 91 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 90 
+图 40 反向通道电流（CURRENT_CURVE=0，CHIP_TIME=5） 
+ 
+图 41 反向通道电流（CURRENT_CURVE=1，CHIP_TIME=5） 
+ 
+4.13.3.4 CRM 帧格式 
+CRM 帧长度为32 位，前24 位包含用户定义的数据，后8 位是CRC 校验。 
+表格 177 CRM 命令帧和响应帧格式 
+命令数据 
+CRC 
+Data[23:0] 
+CRC[7:0] 
+4.13.3.5 PDCM 帧格式 
+PDCM 模式的主要目的是从多个数据源传输高速同步数据。PDCM 模式的响应数据包是从一个
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 92 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 91 
+或多个从机传输到单个主机。PDCM 模式的数据长度是可变的，但通常同一个DSI3 总线上的所
+有从机应保持一致。数据字段的大小和内容是可以配置的。 
+表格 178 PDCM 响应帧格式 
+命令数据 
+CRC 
+Data（数据长度为1 到63 个字节） 
+CRC[7:0] 
+4.13.3.6 CRC 校验 
+接收和发送CRM 帧和PDCM 帧，需要进行CRC 校验。 
+CRC 计算方法如下： 
+ 
+计算CRC 是从数据的最高位（MSB）开始，与数据传输的顺序一致。 
+ 
+对于CRM 帧，CRC 种子值为0xFF。 
+ 
+对于PDCM 帧，CRC 种子值是0xFF 或DSI_SOURCE_ID。可以通过寄存器
+DSI_CFG[PDCM_SEED] 选择。 
+ 
+CRC 多项式为：x^8+x^5+x^3+x^2+x+1 
+CRC 编码过程： 
+（1） 
+将种子值预设到移位寄存器的最低位（LSB）中。 
+（2） 
+使用串行CRC 计算方法，发送器将消息按顺序（MSB 在前）放入移位寄存器
+的最低位。 
+（3） 
+在消息数据之后，发送器将8 个零输入到移位寄存器中，以匹配CRC 的长
+度。 
+（4） 
+当最后一个零输入后，移位寄存器中包含了CRC。 
+（5） 
+发送CRC 值。 
+CRC 解码过程： 
+（1） 
+将种子值预设到移位寄存器的最低位（LSB）中。 
+（2） 
+使用串行CRC 计算方法，接收器将接收到的消息和CRC 按接收顺序（MSB 在
+前）放入移位寄存器的最低位。 
+（3） 
+当CRC 的最后一位进入移位寄存器时，移位寄存器中包含了CRC 校验结果。 
+（4） 
+如果移位寄存器为0，则CRC 正确。 
+（5） 
+如果移位寄存器包含非0 值，则CRC 错误。 
+4.13.4 数字控制模块 
+DSI3 接口的数字控制模块直接连接到DSI3 的物理层接口。下图显示了DSI3 数字控制模块的结
+构： 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 93 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 92 
+图 42 DSI3 数字控制模块 
+总线
+&
+中断
+DMA
+数据总线
+模块总线
+FCC
+曼彻斯特解码
+CRC校验
+同步检测
+FCC_DATA
+CMD_EVT
+CRC_ERR
+SYNC_EVT
+PDCM_EVT
+RDCM_ERR
+START_EDGE_ERR
+FCC_ERR
+SYNC 
+CNT
+MOD
+CNT
+SYNC_CNT_OK
+TIMER
+开始/捕获
+RCC
+Chip编码
+CRC计算
+反向通道
+RCC_FINISH
+时钟
+前向通道
+捕获值
+TIMER_B_EVT
+TIMER_A_EVT
+DSI_CLK_1US
+ 
+内部时钟 
+ 
+数字控制模块的时序基于内部生成的1MHz 时钟。 
+ 
+1MHz 时钟通过分频器从系统时钟生成，并可以使用DSI_CLK_1US 寄存器进行配置。
+时钟同步功能可以将此分频器与前向通道的数据流同步。 
+ 
+该时钟用作前向通道解码的过采样时钟，也用作反向通道编码和传输的基准时钟。 
+ 
+DSI3 内部计时器将此时钟用作其时间基准。 
+4.13.4.1 前向通道（FCC）接收单元 
+前向通道（FCC）接收单元能够解码CRM 和PDCM 帧。依据所配置的操作模式，会生成不同中
+断的事件。 
+起始事件 
+每次传输开始都会产生起始事件（SYNC_EVT）。起始事件是在FCC 信号初始下降沿（起始沿）
+后大约tDSI_BIT/2 生成的。FCC 信号通过内部1MHz 时钟进行采样和过滤，一旦起始脉冲有效就
+会产生该事件。如果起始脉冲过小，消息接收将被中止，并且不会生成起始事件。 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 94 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 93 
+图 43 FCC 起始事件 
+Sensor(CRM模式)
+ECU
+VDSI_HIGH
+VDSI_LOW
+0V
+时间
+CLK_1US
+CLK_CNT
+Start Edge
+tDSI_BIT
+SYNC_EVT
+1 0
+3 2
+5 4
+7 6
+1 0
+3 2
+6
+7
+...
+1
+ 
+CRM 模式相关事件 
+ 
+如果收到有效的CRM 帧，将会产生命令事件（CMD_EVT）。 
+ 
+如果DSI_CFG[CHECK_CRC]=0，接收到的命令将不会由硬件进行CRC 校验，因此所
+有传输都会产生命令事件（CMD_EVT）。 
+ 
+如果启用了CRC 校验，接收到的命令将由内部逻辑进行CRC 校验，错误的CRC 值将
+导致CRC 错误事件（CRC_ERR），在这种情况下不会生成命令事件（CMD_EVT）。 
+ 
+接收到的命令包括CRC 值将被存储在FCC_COMMAND 寄存器中，并且将保持有效，
+直到接收到新的命令。 
+ 
+当FCC 信号违反曼彻斯特编码时，将检测到协议错误（例如：在一个Bit 的中间无法检
+测到信号边缘），此时接收器状态机将进入错误状态，由IRQ_STATUS[FCC_ERR] 事
+件标志。错误状态及其中断可以通过DSI_CTRL[RESET_FCC] 清除，或者通过禁用
+FCC 接收器（DSI_ANA_CFG[DSI_EN]=0）来清除。 
+PDCM 事件 
+当接收到有效的PDCM 消息时将会产生PDCM 事件（PDCM_EVT）。一个有效的PDCM 消息由
+起始脉冲和一个曼彻斯特编码的0 组成。因此，需要两个位时间tDSI_BIT 来验证一条消息。 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 95 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 94 
+图 44 PDCM 事件 
+Sensor(PDCM模式)
+ECU
+VDSI_HIGH
+VDSI_LOW
+0V
+时间
+CLK_1US
+CLK_CNT
+tDSI_BIT
+1 0
+3 2
+5 4
+7 6
+1 0
+3 2
+6
+7
+0
+PDCM_EVT
+Start Edge
+SYNC_EVT
+ 
+PDCM 错误事件 
+如果检测到PDCM 消息中有错误，将不会产生PDCM 事件（PDCM_EVT），相应地将触发一个
+PDCM 错误事件（PDCM_ERR）。接收器状态机将继续解码FCC 数据流，以防主机发送了有效
+的CRM 消息而不是PDCM 命令。这可能发生在主控制器想要将传输模式从PDCM 切换到CRM
+时。如果主机发送了CRM 消息，当消息有效时接收器将生成一个命令事件（CMD_EVT）。 
+图 45 PDCM 错误事件 
+Sensor(PDCM模式，错误事件)
+ECU
+tDSI_BIT
+...
+1 0
+3 2
+5 4
+7 6
+1 0
+3 2
+6
+7
+...
+0
+Unexpected Edge
+VDSI_HIGH
+VDSI_LOW
+0V
+CLK_1US
+CLK_CNT
+时间
+Start Edge
+SYNC_EVT
+PDCM_ERR
+ 
+4.13.4.2 定时器 
+DSI3 定时器基于内部生成的1MHz 时钟。当检测到新的FCC 起始边沿时，定时器将重新启动
+（重置为0）。它将继续运行，直到其内部计数器溢出或直到它再次被重新启动。可以使用
+DSI_CTRL[RESET_TIMER] 停止并重置定时器。 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 96 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 95 
+定时器的用途为： 
+ 
+作为比较定时器，测量FCC 起始边沿与RCC 帧之间的时间（定时器A 事件），用来触
+发RCC 帧的发送（需要设置DSI_CFG[AUTO_TIMER]）。在CRM 模式下的时间是
+tDSI,RESP,CRM，在PDCM 模式下的时间是tDSI,RESP,PDCM。时间可以直接由软件写入
+DSI_TIMER_A 寄存器。 
+ 
+作为比较定时器，用于测量PDCM 模式下两个连续起始边沿的间隔时间（定时器B 事
+件） 
+ 
+作为捕获定时器，用于测量两个FCC 起始边沿之间的时间。这个时间可用于验证
+PDCM 模式中的同步脉冲时序。 
+下面三个图展示了与定时器相关的中断事件： 
+图 46 CRM 模式定时器中断 
+Timer counting
+Time counting
+启动Timer
+启动Timer
+TimerA事件
+32位响应
+开始传输RCC
+RCC_FINISH
+RCC_FINISH
+时间
+时间
+CMD_EVT/CRC_ERR
+SYNC_EVT
+SYNC_EVT
+ECU
+VDSI_HIGH
+VDSI_LOW
+0V
+RCC_READY
+IDSI_Q
+IDSI_RESP
+2*IDSI_RESP
+TIMER_COUNTER
+Sensor
+ECU
+Sensor
+CMD_EVT/CRC_ERR
+TimerA事件
+32位响应
+ 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 97 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 96 
+图 47 PDCM 模式定时器中断（点对点通信） 
+Timer counting
+时间
+时间
+SYNC_EVT
+SYNC_EVT
+VDSI_HIGH
+VDSI_LOW
+0V
+IDSI_Q
+IDSI_RESP
+2*IDSI_RESP
+TIMER_COUNTER
+PDCM_EVT
+SYNC_EVT
+SYNC_EVT
+Timer counting
+Timer counting
+tDSI_BIT
+启动Timer
+启动Timer
+TimerA事件
+同步脉冲周期
+同步脉冲周期
+Frame 1
+Frame 2
+Frame 3
+tDSI_RESP_PDCM
+tDSI_SYNC_PERIOD
+命令开始
+ECU
+Sensor
+ECU
+Sensor
+TIMER_CAPTURE
+TIMER_COMPARE_A
+TIMER_COMPARE_B
+PDCM_EVT
+PDCM_EVT
+命令开始
+命令开始
+启动Timer
+ 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 98 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 97 
+图 48 PDCM 模式定时器中断（总线通信） 
+Timer counting
+SYNC_EVT
+VDSI_HIGH
+VDSI_LOW
+0V
+SYNC_EVT
+Timer counting
+tDSI_BIT
+启动Timer
+TimerA事件 
+(Sensor 1)
+同步脉冲周期
+Packet(Sensor 1)
+tDSI_RESP_PDCM
+Frame
+IDSI_Q
+IDSI_RESP
+2*IDSI_RESP
+TIMER_COUNTER
+TIMER_CAPTURE
+TIMER_COMPARE_A
+TIMER_COMPARE_B
+ECU
+Sensor
+ECU
+Sensor
+TIMER_COMPARE_A
+PDCM_EVT
+命令开始
+命令开始
+时间
+时间
+Packet(Sensor n)
+TimerA事件 
+(Sensor n)
+ 
+4.13.4.3 时钟同步 
+DSI3 数字控制模块包含时钟同步功能。从机时钟和主机时钟可能会有偏差，该功能用于纠正这
+种偏差。 
+在CRM 模式下，FCC 数据流被用来同步时钟。为了达到所需的分辨率，将以系统时钟周期计数
+4 个位的时间（4×tDSI_BIT）。同步逻辑从上升沿开始，并期望在预期的tDSI_BIT 时间内有4 个额外
+的连续上升沿的曼彻斯特编码FCC 信号。由于FCC 数据流中5 个连续上升沿的出现取决于传输
+的数据内容，建议使用命令0x00xxxxxx 或0xFFxxxxxx 作为默认的同步命令。 
+在FCC 接收期间有效的同步测量会产生同步事件（SYNC_CNT_OK）。该测量的结果将被存储
+到DSI_SYNC_COUNTER 寄存器中。这个值可以直接输入到DSI_CLK_1US 寄存器中。当
+DSI_CFG[AUTO_SYNC] 使能时，该值将自动复制到DSI_CLK_1US 寄存器。当上一个FCC 消
+息不能用于同步时，DSI_STATE[SYNC_ERR] 位将被设置为1，否则它将被清除为0。 
+注意：每个CRM 命令都用于尝试同步，只有在FCC 数据流中出现4 个上升沿才会发生有效的同步。 
+下图显示了一个有效的时钟同步和一个不能同步的例子： 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 99 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 98 
+图 49 时钟同步 
+VDSI_HIGH
+VDSI_LOW
+0V
+时间
+Sensor
+ECU
+ 4 Edges 
+Timer Counting
+Timer
+SYNC_COUNTER
+SYNC_ERR
+SYNC_CNT_OK
+Timer
+Timer
+0 1
+2
+3 4
+0
+1
+0
+1
+2
+0
+1
+2
+开始同步
+ 无法同步 
+...
+...
+开始同步
+ 
+4.13.5 寄存器功能描述 
+表格 179 DSI3 寄存器地址映射 
+寄存器名 
+偏移地址 
+描述 
+DSI_ANA_CFG 
+0x00 
+DSI3 模拟配置寄存器 
+DSI_CFG 
+0x02 
+DSI3 配置寄存器 
+DSI_CTRL 
+0x04 
+DSI3 控制寄存器 
+DSI_STATE 
+0x06 
+DSI3 状态寄存器 
+DSI_DISC_CTRL 
+0x08 
+Discovery 模式控制寄存器 
+DSI_CLK_1US 
+0x0C 
+1US 时钟寄存器 
+DSI_SYNC_COUNTER 
+0x0E 
+同步计数器寄存器 
+DSI_CMD_LOW 
+0x10 
+前向通道命令低位寄存器 
+DSI_CMD_HIGH 
+0x12 
+前向通道命令高位寄存器 
+DSI_DMA_ADDR_LOW 
+0x14 
+反向通道DMA 地址低位寄存器 
+DSI_DMA_ADDR_HIGH 
+0x16 
+反向通道DMA 地址高位寄存器 
+DSI_DMA_BUF_LEN 
+0x18 
+反向通道DMA 缓冲区长度寄存器 
+DSI_DMA_REMAIN 
+0x1A 
+反向通道DMA 缓冲区计数寄存器 
+DSI_TIMER_A 
+0x20 
+定时器A 寄存器 
+DSI_TIMER_B 
+0x22 
+定时器B 寄存器 
+DSI_TIMER_C 
+0x24 
+定时器C 寄存器 
+DSI_TIMER_COUNTER 
+0x28 
+定时器计数器寄存器 
+DSI_TIMER_CAPTURE 
+0x2A 
+定时器捕获寄存器 
+DSI_SOURCE_ID 
+0x2C 
+源ID 寄存器 
+DSI_HW_VERSION 
+0x4C 
+硬件版本寄存器 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 100 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 99 
+寄存器名 
+偏移地址 
+描述 
+DSI_IRQSTS 
+0x50 
+DSI3 中断状态寄存器 
+DSI_IRQMASK 
+0x54 
+DSI3 中断屏蔽寄存器 
+DSI_IRQEN 
+0x58 
+DSI3 中断使能寄存器 
+DSI_IRQDIS 
+0x5A 
+DSI3 中断禁止寄存器 
+DSI_IRQPRIO 
+0x5C 
+DSI3 中断嵌套寄存器 
+DSI_IRQNUM 
+0x5E 
+DSI3 中断编号寄存器 
+表格 180 DSI_ANA_CFG (0x00) DSI3 模拟配置寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:13 
+FCC_DEBOUNCE 
+R/W 
+0 
+前向通道信号去抖动。消抖器以24MHz 运行： 
+Debounce 时间 = (2 ^ FCC_DEBOUNCE) * 1 / 24 MHz 
+ 
+0：直通（输入信号无延迟） 
+1：2 * 1 / 24 MHz 
+2：4 * 1 / 24 MHz 
+3：8 * 1 / 24 MHz 
+4：16 * 1 / 24 MHz 
+5：32 * 1 / 24 MHz 
+ 
+注意：在估算时间时应考虑消抖延迟。 
+12 
+FORCE_BYPASS 
+R/W 
+0 
+FCC 强制DSI VREF 快速充电，必须设置为0。 
+11 
+FORCE_CONN 
+R/W 
+0 
+FCC 强制DSI VREF 充电，必须设置为0。 
+10 
+HYST_CFG 
+R/W 
+0 
+FCC 迟滞选择，必须设置为0。 
+9:7 
+CURRENT_OFFSET 
+R/W 
+0 
+反向通道电流偏移值： 
+0：无静态电流 
+1 至7：有静态电流 
+ 
+注意：为了上升沿和下降沿对称，推荐设置为1。 
+（参见4.13.3.3 反向通道电流波形） 
+6 
+CURRENT_CURVE 
+R/W 
+0 
+反向通道电流波形选择： 
+0：圆滑波形 
+1：线性波形 
+ 
+注意：在DSI3 通信期间不要修改此设置。 
+（参见4.13.3.3 反向通道电流波形） 
+5:3 
+CURRENT_SLOPE 
+R/W 
+0 
+反向通道电流斜率选择： 
+0：1 μs 
+1：2 μs 
+2：3 μs 
+3：4 μs 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 101 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 100 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+4：6 μs 
+ 
+注意：CURRENT_SLOPE 受到DSI_CFG[CHIP_TIME] 设置的限
+制。 
+注意：在DSI3 通信期间不要修改此设置。 
+2 
+LOW_CURRENT 
+R/W 
+0 
+反向通道低电流模式选择： 
+0：标准电流水平（IDSI_RESP 有效） 
+1：降低电流水平（IDSI_RESP_L 有效） 
+ 
+注意：必须设置为0。 
+1 
+RCC_EN 
+R/W 
+0 
+反向通道使能： 
+0：禁用反向通道（省电模式） 
+1：使能反向通道 
+0 
+DSI_EN 
+R/W 
+0 
+使能DSI3 接收逻辑和模拟部分（前向通道）： 
+0：禁用DSI3 
+1：使能DSI3（可以检测到唤醒信号） 
+表格 181 DSI_CFG (0x02) DSI3 配置寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:14 
+保留 
+13:12 
+BIT_TIME 
+R/W 
+0 
+FCC 位时间： 
+0：8 μs 
+1：16 μs 
+2：32 μs 
+3：8 μs 
+ 
+注意：在DSI3 通信期间不要修改此设置。 
+11 
+TIMER_START_EDGE 
+R/W 
+0 
+定时器启动边沿选择：  
+0：当FCC 接收器检测到一个有效的启动边沿（下降沿） 
+1：当FCC 接收器检测到一个有效的同步事件 
+（参见4.13.4.1 前向通道接收单元） 
+ 
+注意：当选择同步事件时，定时器的初始值将被预设为4，因为在
+4μs 脉冲之后将检测到一个有效的同步事件。在评估捕获值时要考
+虑4μs 的延迟。 
+10 
+PDCM_SEED 
+R/W 
+0 
+PDCM 模式CRC 种子值选择： 
+0：使用DSI_SOURCE_ID 作为种子值 
+1：使用0xFF 作为种子值 
+ 
+注意：仅在PDCM 模式生效（DSI_CTRL[MODE]=2）。 
+9 
+AUTO_BLANK_ON 
+R/W 
+0 
+自动开启FCC 屏蔽： 
+0：禁用此功能 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 102 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 101 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+1：在接收到完整的命令时，自动设置
+DSI_CTRL[BLANK_ON]=1，开启FCC 屏蔽 
+8 
+AUTO_BLANK_OFF 
+R/W 
+0 
+自动关闭FCC 屏蔽： 
+0：禁用此功能 
+1：在定时器C 事件（TIMER_C_EVT）发生时，自动设置
+DSI_CTRL[BLANK_OFF]=1，关闭FCC 屏蔽 
+7:6 
+CHIP_TIME 
+R/W 
+1 
+反向通道Chip Time： 
+0：3 μs 
+1：4 μs 
+2：5 μs 
+3：6 μs 
+ 
+注意：在DSI3 通信期间不要修改此设置。 
+5 
+SYNC_VERIFY_DIS 
+R/W 
+0 
+禁用同步验证： 
+0：启用同步验证（推荐） 
+1：禁用同步验证 
+验证同步测量的位时间是否在预期范围内（基于tDSI_BIT）。 
+4 
+AUTO_SYNC 
+R/W 
+1 
+自动同步1μs 时钟： 
+0：禁止自动同步DSI_CLK_1US 寄存器 
+1：当发生同步事件（SYNC_CNT_OK）时，自动把
+DSI_SYNC_COUNTER 的值复制到DSI_CLK_1US 寄存器 
+3 
+AUTO_TIMER 
+R/W 
+1 
+自动开启定时器： 
+0：禁止自动开启定时器，使用DSI_CTRL[START_TIMER] 
+1：当检测到启动边沿时，自动开启定时器 
+ 
+注意：将会捕获实际的定时器的值。 
+注意：当设置AUTO_TIMER=1 而且TIMER_START_EDGE=0，
+如果发生启动错误事件（START_EDGE_ERR），那么定时器的值
+将会被破坏。 
+2 
+AUTO_RESP 
+R/W 
+1 
+自动传输应答帧： 
+0：禁止自动应答，使用DSI_CTRL[START_RCC] 
+1：在定时器A 事件（TIMER_A_EVT）发生时，自动传输应答帧 
+ 
+注意：在设置定时器比较值时，考虑从事件发生到实际开始传输数
+据之间有0μs 到1μs 的延迟。 
+注意：该位域在Discovery 模式下不可用。 
+1 
+AUTO_CRC 
+R/W 
+1 
+反向通道自动添加CRC 校验： 
+0：禁止自动添加CRC 校验 
+1：发送RCC 数据后自动添加CRC 校验 
+ 
+注意：在DSI3 通信期间不要修改此设置。 
+注意：如果设置为1，那么实际发送的数据长度将会是
+（DSI_DMA_BUF_LEN + 1）个字节。 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 103 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 102 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+0 
+CHECK_CRC 
+R/W 
+1 
+检查前向通道的CRC： 
+0：不检查前向通道的CRC 
+1：检查前向通道接收到的CRC 
+ 
+注意：当设置为0 时，接收到的所有命令都会产生命令事件
+（CMD_EVT）。当设置为1 时，如果CRC 有效则产生命令事件
+（CMD_EVT），如果CRC 无效则产生CRC 错误事件
+（CRC_ERR）。 
+表格 182 DSI_CTRL (0x04) DSI3 控制寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:10 
+保留 
+9:8 
+MODE 
+W 
+0 
+设置通信模式： 
+0：不改变当前的通信模式 
+1：设置为CRM 模式 
+2：设置为PDCM 模式 
+3：设置为Discovery 模式 
+ 
+注意：可以通过 DSI_STATE[MODE] 寄存器读取当前的通信模
+式。 
+7 
+BLANK_ON 
+W 
+0 
+1：开启FCC 屏蔽 
+ 
+注意：此位域可以使用 DSI_CFG[AUTO_BLANK_ON] 自动设
+置。 
+注意：如果BLANK_ON 和BLANK_OFF 同时置1，那么
+BLANK_OFF 的优先级更高。 
+6 
+BLANK_OFF 
+W 
+0 
+1：关闭FCC 屏蔽 
+ 
+注意：此位域可以使用 DSI_CFG[AUTO_BLANK_OFF] 自动设
+置。 
+5 
+RESET_TIMER 
+W 
+0 
+1：重置定时器计数器寄存器，并暂停定时器 
+ 
+注意：定时器重置后不会触发AUTO_BLANK_OFF。在这种情况
+下，请使用BLANK_OFF。 
+4 
+START_TIMER 
+W 
+0 
+1：启动定时器 
+ 
+注意：只有在 DSI_CFG[AUTO_TIMER]=0 时可用。 
+3 
+CLEAR_FCC_LOW 
+W 
+0 
+1：清除 DSI_STATE[FCC_LOW] 
+2 
+START_RCC 
+W 
+0 
+1：开始传输应答帧 
+ 
+注意：在设置此位之前，RCC 缓冲区长度和DMA 基地址必须已
+经正确配置。 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 104 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 103 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+1 
+RESET_RCC 
+W 
+0 
+在所有模式下： 
+1：中止RCC 状态机 
+ 
+在Discovery 模式下： 
+1：激活Discovery 模式电流比较器 
+0 
+RESET_FCC 
+W 
+0 
+1：中止FCC 状态机（用于从FCC 错误状态中恢复） 
+表格 183 DSI_STATE (0x06) DSI3 状态寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:8 
+保留 
+7 
+SYNC_ERR 
+R 
+0 
+同步计数器错误。前向通道接收到的数据无法用于时钟同步时，该
+位被置1。当开始新的同步测量时，即收到新的同步事件
+（SYNC_EVT）时，该位自动清零。 
+6 
+TIMER_STATE 
+R 
+0 
+0：定时器处于暂停状态 
+1：定时器正在运行 
+ 
+注意：当定时器复位（DSI_CTRL[RESET_TIMER]=1）时，或者
+寄存器DSI_TIMER_COUNTER 溢出时，定时器的状态将会从运
+行变为暂停。 
+5 
+BLANK_STATE 
+R 
+0 
+0：FCC 没有处于屏蔽状态（正常接收） 
+1：FCC 处于屏蔽状态 
+4 
+FCC_LOW 
+R 
+1 
+FCC 线路监控： 
+0：自上次复位或上次DSI_CTRL[CLEAR_FCC_LOW] 以来，
+FCC 未处于低电平状态 
+1：自上次复位或上次DSI_CTRL[CLEAR_FCC_LOW] 以来，
+FCC 曾处于低电平状态 
+ 
+注意：可用于检测总线空闲状态 
+注意：监控的FCC 信号是在去抖动之后的信号 
+3 
+FCC_SIGNAL 
+R 
+0 
+FCC 信号状态（去抖动之后的信号） 
+ 
+注意：如果DSI_ANA_CFG[DSI_EN]=0，那么FCC 信号始终为
+1。 
+2 
+FCC_IDLE 
+R 
+1 
+FCC 通道状态： 
+0：正在接收命令或错误状态 
+1：空闲状态 
+ 
+注意：通过 DSI_IRQSTS[FCC_ERR] 查看是否处于错误状态。 
+1:0 
+MODE 
+R 
+1 
+当前的通信模式： 
+0：无效 
+1：CRM 模式 
+2：PDCM 模式 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 105 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 104 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+3：Discovery 模式 
+表格 184 DSI_DISC_CTRL (0x08) Discovery 模式控制寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:11 
+保留 
+10:8 
+DEBOUNCE 
+R/W 
+0 
+电流比较器的输出值去抖动。消抖器以24MHz 运行： 
+Debounce 时间 = (2 ^ DEBOUNCE) * 1 / 24 MHz 
+ 
+0：直通（输入信号无延迟） 
+1：2 * 1 / 24 MHz 
+2：4 * 1 / 24 MHz 
+3：8 * 1 / 24 MHz 
+4：16 * 1 / 24 MHz 
+5：32 * 1 / 24 MHz 
+ 
+注意：在估算时间时应考虑消抖延迟。 
+7:6 
+保留 
+5 
+DISC_AUTO_STOP 
+R/W 
+0 
+在Discovery 模式中，自动停止输出电流： 
+0：输出电流不会自动停止，使用
+DSI_DISC_CTRL[CURRENT_ON] 控制输出电流 
+1：在定时器B 事件（TIMER_B_EVT）发生时，自动停止输出电
+流 
+4 
+DISC_AUTO_START 
+R/W 
+0 
+在Discovery 模式中，自动开始输出电流： 
+0：输出电流不会自动开始，使用
+DSI_DISC_CTRL[CURRENT_ON] 控制输出电流 
+1：在定时器A 事件（TIMER_A_EVT）发生时，自动开始输出电
+流 
+ 
+注意：在设置定时器比较值时，考虑从事件发生到实际开始输出电
+流之间有0μs 到1μs 的延迟。 
+3 
+保留 
+2 
+CMP_CAPT 
+R 
+0 
+捕获到的电流比较器输出结果： 
+0：电流低于阈值 
+1：电流高于阈值 
+ 
+注意：当开始输出电流时（CURRENT_ON=1），CMP_CAPT 的
+值被复位。当停止输出电流时（CURRENT_ON=0），
+CMP_RESULT 的值被捕获。 
+注意：此标志在CURRENT_ON=0 时有效。如果
+DISC_AUTO_STOP=1，则需要特别注意。 
+1 
+CMP_RESULT 
+R 
+0 
+电流比较器输出结果： 
+0：电流低于阈值 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 106 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 105 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+1：电流高于阈值 
+ 
+注意：当该位从0 变为1 时，DSI_IRQSTS[DISC_EVT] 将会被置
+位，CURRENT_ON 将会被强制置为0。 
+0 
+CURRENT_ON 
+R/W 
+0 
+使能Discovery 模式电流输出： 
+0：禁止电流输出 
+1：使能电流输出 
+ 
+注意：DSI_IRQSTS[DISC_EVT] 被置位时，CURRENT_ON 将会
+被强制置为0。 
+表格 185 DSI_CLK_1US (0x0C) 1US 时钟寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:10 
+保留 
+9:5 
+DIV 
+R/W 
+24 
+时钟分频器的整数部分 
+4:0 
+FRAC 
+R/W 
+0 
+时钟分频器的小数部分：这些位选择在每32 个输出周期中，插入
+多少个时钟数。以在平均输出频率上实现更高的分辨率。 
+0：0 / 32 = 0 
+1：1 / 32 = 0.03125 
+... 
+16：16 / 32 = 0.5 
+... 
+31：31 / 32 = 0.96875 
+注意：写入该寄存器将重置分频器。不应在DSI 通信或测距时写入该寄存器。 
+表格 186 DSI_SYNC_COUNTER (0x0E) 同步计数器寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:10 
+保留 
+9:0 
+VALUE 
+R 
+0 
+上次同步测量的结果。数值对应4 个位的时间（tDSI_BIT），以系统
+时钟周期计算。 
+ 
+注意：当发生同步事件（SYNC_CNT_OK）时，该寄存器值有
+效。 
+注意：该值可以直接输入到DSI_CLK_1US 寄存器中，以设置新
+的时间基准。 
+表格 187 DSI_CMD_LOW (0x10) 前向通道命令低位寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:0 
+CMD 
+R 
+0 
+上次接收到的命令（低16 位） 
+注意：当产生命令事件（CMD_EVT）时，更新该寄存器的值。 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 107 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 106 
+表格 188 DSI_CMD_HIGH (0x12) 前向通道命令高位寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:0 
+CMD 
+R 
+0 
+上次接收到的命令（高16 位） 
+注意：当产生命令事件（CMD_EVT）时，更新该寄存器的值。 
+表格 189 DSI_DMA_ADDR_LOW (0x14) 反向通道DMA 地址低位寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:0 
+ADDR 
+R/W 
+0 
+发送缓冲区的基地址（低16 位） 
+ 
+注意：当开始传输时，基地址会被复制到内部寄存器，因此在传输
+过程中可以重新设置该寄存器。 
+注意：发送时按照从高到低的字节顺序，因此该寄存器必须指向缓
+冲区的最高地址。 
+表格 190 DSI_DMA_ADDR_HIGH (0x16) 反向通道DMA 地址高位寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:0 
+ADDR 
+R/W 
+0 
+发送缓冲区的基地址（高16 位） 
+ 
+注意：当开始传输时，基地址会被复制到内部寄存器，因此在传输
+过程中可以重新设置该寄存器。 
+注意：发送时按照从高到低的字节顺序，因此该寄存器必须指向缓
+冲区的最高地址。 
+表格 191 DSI_DMA_BUF_LEN (0x18) 反向通道DMA 缓冲区长度寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:6 
+保留 
+5:0 
+LEN 
+R/W 
+0 
+反向通道DMA 缓冲区长度（字节数） 
+ 
+注意：长度必须大于0。 
+注意：当开始传输时，缓冲区长度会被复制到内部寄存器，因此在
+传输过程中可以重新设置该寄存器。 
+注意：设置缓冲区长度时，应考虑DSI_CFG[AUTO_CRC] 寄存
+器的设置。 
+表格 192 DSI_DMA_REMAIN (0x1A) 反向通道DMA 缓冲区计数寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:6 
+保留 
+5:0 
+BYTE 
+R 
+0 
+剩余的DMA 缓冲区字节数（该数值在传输过程中有效） 
+表格 193 DSI_TIMER_A (0x20) 定时器A 寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:13 
+保留 
+12:0 
+VALUE 
+R/W 
+294 
+定时器比较值。比较事件会生成中断，该事件可用于自动开始数据
+传输。 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 108 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 107 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+ 
+注意：只有在该寄存器值大于0 时，才会产生比较事件。 
+注意：该定时器基于模块的1μs 计数器。 
+表格 194 DSI_TIMER_B (0x22) 定时器B 寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:13 
+保留 
+12:0 
+VALUE 
+R/W 
+0 
+定时器比较值。比较事件会生成中断，该事件可用于测量PDCM
+周期。 
+ 
+注意：只有在该寄存器值大于0 时，才会产生比较事件。 
+注意：该定时器基于模块的1μs 计数器。 
+表格 195 DSI_TIMER_C (0x24) 定时器C 寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:13 
+保留 
+12:0 
+VALUE 
+R/W 
+0 
+定时器比较值。比较事件会生成中断，该事件可用于停止FCC 屏
+蔽。 
+ 
+注意：只有在该寄存器值大于0 时，才会产生比较事件。 
+注意：该定时器基于模块的1μs 计数器。 
+表格 196 DSI_TIMER_COUNTER (0x28) 定时器计数器寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:13 
+保留 
+12:0 
+VALUE 
+R 
+0 
+实际的定时器计数器值 
+ 
+注意：该定时器基于模块的1μs 计数器。 
+表格 197 DSI_TIMER_CAPTURE (0x2A) 定时器捕获寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:13 
+保留 
+12:0 
+VALUE 
+R 
+0 
+当定时器重启时捕获的数值。该数值可用于测量PDCM 周期。 
+ 
+注意：该定时器基于模块的1μs 计数器。 
+表格 198 DSI_SOURCE_ID (0x2C) 源ID 寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:8 
+保留 
+7:0 
+ID 
+R/W 
+0 
+设备的源ID。可以与物理地址相同。 
+ 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 109 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 108 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+注意：在PDCM 模式中，如果DSI_CFG[PDCM_SEED]=0，
+DSI_SOURCE_ID 将被用作CRC 种子值。 
+表格 199 DSI_HW_VERSION (0x4C) 硬件版本寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:8 
+保留 
+7:0 
+VER 
+R 
+1 
+硬件版本号 
+表格 200 DSI_IRQSTS (0x50) DSI3 中断状态寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15 
+DISC_EVT 
+R/W 
+0 
+Discovery 模式输出电流超出阈值。该事件将会停止输出电流。 
+向该位写入1 清除事件标志。 
+14 
+SYNC_CNT_OK 
+R/W 
+0 
+同步测量成功结束。 
+向该位写入1 清除事件标志。 
+13 
+RCC_READY 
+R/W 
+0 
+RCC 模块已经为下一次发送做好准备。 
+向该位写入1 清除事件标志。 
+12 
+RCC_FINISH 
+R/W 
+0 
+RCC 发送完成。 
+向该位写入1 清除事件标志。 
+11 
+TIMER_C_EVT 
+R/W 
+0 
+定时器C 比较事件。 
+向该位写入1 清除事件标志。 
+10 
+TIMER_B_EVT 
+R/W 
+0 
+定时器B 比较事件。 
+向该位写入1 清除事件标志。 
+9 
+TIMER_A_EVT 
+R/W 
+0 
+定时器A 比较事件。 
+向该位写入1 清除事件标志。 
+8 
+START_EDGE_ERR 
+R/W 
+0 
+无效的启动沿（同步脉冲过短）。 
+向该位写入1 清除事件标志。 
+7 
+FCC_ERR 
+R/W 
+0 
+接收器检测到DSI3 协议错误。 
+向该位写入1 清除事件标志。 
+6 
+DISC_ERR 
+R/W 
+0 
+检测到无效的Discovery 脉冲。 
+向该位写入1 清除事件标志。 
+5 
+PDCM_ERR 
+R/W 
+0 
+检测到无效的PDCM 脉冲。 
+向该位写入1 清除事件标志。 
+4 
+CRC_ERR 
+R/W 
+0 
+接收器检测到CRC 错误。 
+向该位写入1 清除事件标志。 
+3 
+DISC_EVT 
+R/W 
+0 
+检测到有效的Discovery 脉冲。 
+向该位写入1 清除事件标志。 
+2 
+PDCM_EVT 
+R/W 
+0 
+检测到有效的PDCM 脉冲。 
+向该位写入1 清除事件标志。 
+1 
+CMD_EVT 
+R/W 
+0 
+接收到有效的CRM 命令。 
+向该位写入1 清除事件标志。 
+0 
+SYNC_EVT 
+R/W 
+0 
+接收到有效的同步信号。 
+向该位写入1 清除事件标志。 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 110 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 109 
+表格 201 DSI_IRQMASK (0x54) DSI3 中断屏蔽寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:0 
+MASK 
+R/W 
+0 
+每一位分别对应DSI_IRQSTS 寄存器16 个中断的使能状态。 
+1：该中断已使能 
+0：该中断未使能 
+表格 202 DSI_IRQEN (0x58) DSI3 中断使能寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:4 
+保留 
+3:0 
+VEN 
+W 
+0 
+用于使能中断。例如向该寄存器写入5，则DSI_IRQMASK 寄存
+器的第5 位会被置1。 
+表格 203 DSI_IRQDIS (0x5A) DSI3 中断禁止寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:4 
+保留 
+3:0 
+VDIS 
+W 
+0 
+用于禁止中断。例如向该寄存器写入5，则DSI_IRQMASK 寄存
+器的第5 位会被清0。 
+表格 204 DSI_IRQPRIO (0x5C) DSI3 中断嵌套寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:5 
+保留 
+4:0 
+PRIO 
+R/W 
+16 
+中断向量嵌套。软件可以把当前的中断向量写入该寄存器，则只有
+更高优先级（编号更小）的中断可以嵌套。 
+表格 205 DSI_IRQNUM (0x5E) DSI3 中断编号寄存器 
+位/域 
+名称 
+R/W 
+复位值 
+描述 
+15:5 
+保留 
+4:0 
+NUM 
+R/W 
+16 
+读：如果当前有中断发生，该寄存器返回当前发生的最高优先级
+（最小编号）的中断。如果当前未发生中断，则返回第一个未使用
+的中断编号。 
+写：写入该寄存器用于清除对应的中断事件。 
+ 
+Arm Cortex-M0 系统 
+内核系统结合了 32 位 Arm® Cortex®-M0 内核的功能和性能，以及嵌入式片上存储器 (MTP、
+SRAM 和 EEPROM) 和基本系统外设，包括系统状态控制器、CRC 计算单元和看门狗逻辑。 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 146 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 145 
+ 
+电气特性 
+ 
+电气特性测试条件 
+ 
+所有时间值均基于振荡器频率fCLK 的典型值 
+ 
+流入设备引脚的电流为正，从设备引脚流出的电流为负 
+ 
+除非另有说明，VSUP = 6V 至24V，TAMB = -40°C 至+105°C 
+ 
+典型值是基于VSUP = 12V 和TAMB = +25°C 的工作条件 
+ 
+电源与功耗 
+表格 271 电源与功耗特性 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 单位 
+IVSUP 
+在正常运行期间VSUP 的电流消耗 
+DSP_CTRL[DSP_EN]=1 
+不包括任何输出电流 
+5 
+11 
+18 
+mA 
+IVSUP_LOW 
+在正常运行期间VSUP 的电流消耗 
+（关闭DSP 信号路径） 
+DSP_CTRL[DSP_EN]=0 
+- 
+6.3 
+- 
+mA 
+IVSUP_STBY 
+Standby 模式VSUP 的电流消耗 
+DSP_CTRL[DSP_EN]=0 
+禁用GPIO 
+- 
+- 
+1 
+mA 
+VDDA 
+内部生成的模拟电源 
+外部CVDDA 已连接 
+4.5 
+4.75 
+5 
+V 
+IVDDA_SHORT 
+对地短路时VDDA 的输出电流 
+VVDDA=0V 
+-41 
+- 
+- 
+mA 
+VDDD 
+内部生成的数字电源 
+外部CVDDD 已连接 
+1.35 
+1.5 
+1.65 
+V 
+IVDDD_SHORT 
+对地短路时VDDD 的输出电流 
+VVDDD=0V 
+-77.7 
+- 
+- 
+mA 
+VTOV 
+VT 过压检测 
+ 
+25.7 
+26.5 
+27.3 
+V 
+ 
+时钟 
+表格 272 振荡器特性 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 单位 
+fCLK 
+系统时钟频率 
+TAMB=25°C 
+- 
+24 
+- 
+MHz 
+fCLK_ACC 
+系统时钟精度(1) 
+ 
+-1 
+- 
+1 
+% 
+fOSC_WDOG 
+看门狗输出频率 
+ 
+0.7 
+0.8 
+0.9 
+MHz 
+注意：未在生产中测试。 
+ 
+脉冲发生器（PUG） 
+表格 273 脉冲发生器特性 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 单位 
+NPULSES 
+发波脉冲数 
+通过 PUG_CFG[PULSE_CNT] 
+调整 
+0 
+- 
+127 
+1 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 147 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 146 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 单位 
+fC 
+可配置的换能器中心频率 
+fCLK=24.0MHz 
+通过 PUG_FC[FC] 调整 
+30 
+- 
+125 
+kHz 
+fL 
+可配置的最低频率 
+fCLK=24.0MHz 
+通过 PUG_FL[FL] 调整 
+20 
+- 
+140 
+kHz 
+fH 
+可配置的最高频率 
+fCLK=24.0MHz 
+通过 PUG_FH[FH] 调整 
+20 
+- 
+140 
+kHz 
+fDELTA 
+Chirp 模式频率变化的步长 
+fCLK=24.0MHz 
+PUG_CFG[BURST_TYPE]=1 
+通过 PUG_STEP[WIDTH] 调整 
+5.722 
+- 
+1458 
+Hz 
+fSTEP 
+fC, fL, fH, fDELTA 频率调整的步长 
+fCLK=24.0MHz 
+- 
+5.722 
+- 
+Hz 
+ 
+换能器驱动（TRD） 
+表格 274 换能器驱动特性 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 单位 
+IDRV_0 
+最小驱动电流 
+TRD_CFG[I_DRV]=0 
+TRD_CFG[LOW_CURRENT]=0 
+VDRVC=VT - 2.5V 
+- 
+-190 
+- 
+mA 
+IDRV_0_DIAG 
+用于诊断的最小驱动电流 
+TRD_CFG[I_DRV]=0 
+TRD_CFG[LOW_CURRENT]=1 
+VDRVC < 0.5V 
+- 
+0 
+- 
+mA 
+IDRV_31 
+最大驱动电流 
+TRD_CFG[I_DRV]=31 
+TRD_CFG[LOW_CURRENT]=0 
+VDRVC=VT - 2.5V 
+- 
+-500 
+- 
+mA 
+IDRV_31_DIAG 
+用于诊断的最大驱动电流 
+TRD_CFG[I_DRV]=31 
+TRD_CFG[LOW_CURRENT]=1 
+VDRVC < 0.5V 
+- 
+-1.48 
+- 
+mA 
+NIDRV 
+驱动电流可调整的步数 
+ 
+- 
+31 
+- 
+1 
+IDRV_STEP 
+驱动电流调整步长 
+TRD_CFG[LOW_CURRENT]=0 
+- 
+10 
+- 
+mA 
+IDRV_STEP_DIAG 
+用于诊断的驱动电流调整步长 
+TRD_CFG[LOW_CURRENT]=1 
+- 
+48.2 
+- 
+uA 
+RSW_DRV1_2 
+驱动开关SWDRVX 的导通电阻 
+TRD_CFG[LOW_CURRENT]=0 
+处于发波状态 
+- 
+0.95 
+- 
+Ω 
+ 
+模拟信号处理（ASP） 
+表格 275 模拟信号处理特性 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 单位 
+GANA_MIN 
+模拟放大器的最小可配置增益 
+fIN=58kHz 
+ASP_CFG[G_ANA]=0 
+38.48 
+42.2 
+47.22 
+dB 
+GANA_MAX 
+模拟放大器的最大可配置增益 
+fIN=58kHz 
+ASP_CFG[G_ANA]=7 
+55.3 
+59 
+64.04 
+dB 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 148 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 147 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 单位 
+GANA_MIN_DIAG 
+诊断测量时，模拟放大器的最小可配置
+增益 
+fIN=58kHz 
+ASP_CFG[G_ANA]=0 
+ASP_CFG[REDUCE_GAIN]=1 
+7 
+11 
+15 
+dB 
+GANA_MAX_DIAG 
+诊断测量时，模拟放大器的最大可配置
+增益 
+fIN=58kHz 
+ASP_CFG[G_ANA]=0 
+ASP_CFG[REDUCE_GAIN]=1 
+24 
+28 
+32.6 
+dB 
+GANA_STEP 
+模拟增益和诊断增益的调整步长(1) 
+fIN=58kHz 
+- 
+2.4 
+- 
+dB 
+NG_ANA 
+模拟增益和诊断增益可调整的步数 
+ 
+- 
+7 
+- 
+1 
+eN 
+等效输入噪声(2) 
+fIN=58kHz 
+ASP_CFG[G_ANA]=7 
+- 
+5.62 
+- 
+nV
+√Hz
+ 
+RAINx 
+输入阻抗INP 至GNDA，INN 至
+GNDA 
+TAMB=25°C 
+VINP ≤ 0.1V 
+VINN ≤ 0.1V 
+75 
+100 
+125 
+Ω 
+f-3dB_LP 
+低通滤波器的-3dB 截止频率（常规） 
+ASP_CFG[LPF_CFG]=0 
+90 
+- 
+- 
+kHz 
+f-3dB_LP_H 
+低通滤波器的-3dB 截止频率（高频） 
+ASP_CFG[LPF_CFG]=1 
+180 
+- 
+- 
+kHz 
+nADC14 
+ADC 分辨率(2) (3) 
+ 
+- 
+14 
+- 
+Bit 
+注意： 
+（1） 
+由设计保证单调性 
+（2） 
+未在生产中测试 
+（3） 
+ADC 分辨率由其结构决定，不受生产的影响。产品规格的符合性通过数字测试隐含地进行测试。 
+ 
+数字信号处理（DSP） 
+表格 276 测量定时器（MT）特性 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 单位 
+TTS 
+测量定时器时间戳分辨率 
+fCLK=24.0MHz 
+- 
+1.0 
+- 
+μs 
+TTS_ACC 
+测量定时器精度(1) 
+时钟未同步 
+-3 
+- 
+3 
+% 
+TTS_ACC_SYNC_CRM 
+测量定时器精度（通过CRM 同步）(1) (2) 
+时钟已同步 
+-0.5 
+- 
+0.5 
+% 
+TTS_ACC_SYNC_PDCM 
+测量定时器精度（通过PDCM 同步）(1) (3) 
+时钟已同步 
+-0.2 
+- 
+0．2 
+% 
+注意： 
+（1） 
+未在生产中测试 
+（2） 
+使用DSI3 命令位时间自动测量功能 
+（3） 
+软件需要测量PDCM 脉冲之间的时间，并调整DSI_CLK_1US 寄存器的值。 
+ 
+表格 277 包络处理器（ENVP）特性 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 单位 
+fC_ENVP 
+滤波器中心频率 
+ 
+- 
+1.0 
+- 
+fC 
+f-3dB_ENVP 
+滤波器 -3dB 带宽 
+通过ENVP_CTRL[BW_CFG] 调整 
+0.0102 
+- 
+0.3751 
+fC 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 149 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 148 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 单位 
+GCAL 
+生产线末端校准增益 
+通过ENVP_CTRL[G_CAL] 调整 
+0 
+- 
+12 
+dB 
+GCAL_STEP 
+校准增益的步长 
+ 
+0.2 
+0.38 
+0.79 
+dB 
+NCAL 
+校准增益可调整的步数 
+ 
+- 
+31 
+- 
+1 
+表格 278 数字放大器（DAMP）特性 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 单位 
+GDIG 
+数字放大器增益 
+通过DAMP_CFG[G_DIG] 调整 
+0 
+- 
+47.89 
+dB 
+GDIG_STEP 
+数字增益的步长 
+ 
+0.28 
+0.38 
+0.53 
+dB 
+NDIG 
+数字增益可调整的步数 
+ 
+- 
+127 
+- 
+1 
+ 
+模拟数据采集（ADA） 
+表格 279 模拟数据采集（ADA）特性 
+符号 
+描述 
+条件 
+最小值 
+典型值 
+最大值 
+单位 
+VADC_REF 
+ADC 参考电压(1)  
+ 
+- 
+1.0 
+- 
+VDDA 
+tADC_CONV 
+ADC 转换时间(1)  
+fCLK=24MHz 
+ADA_CFG[SAMP_PERIOD]=1
+ADA_CFG[CLK_DIV]=1 
+- 
+2.3 
+- 
+μs 
+nADC10 
+ADC 分辨率(1) (2) 
+ 
+- 
+10 
+- 
+Bit 
+AHV 
+高电压的输入衰减因数 
+ 
+0.122 
+0.125 
+0.128 
+V/V 
+ALV 
+低电压的输入衰减因数(1)  
+ 
+- 
+1.0 
+- 
+V/V 
+注意： 
+（1） 
+未在生产中测试 
+（2） 
+ADC 分辨率由其结构决定，不受生产的影响。产品规格的符合性通过数字测试隐含地进行测试。 
+ 
+温度传感器 
+表格 280 温度传感器特性 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 
+单位 
+TSENSACC25 
+温度传感器在25°C 时的精度 
+TAMB=25°C 
+使用校准后的TSENSOFF 
+和TSENSGAIN 
+-6 
+- 
+6 
+°C 
+TSENSSLOPE 
+温度传感器的斜率(1) 
+ 
+- 
+-0.576 
+- 
+°C/LSB 
+注意：未在生产中测试 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 150 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 149 
+ 
+GPIO 
+表格 281 GPIO 特性 
+符号 
+描述 
+条件 
+最小值 
+典型值 
+最大值 
+单位 
+VGPIO_ITH 
+GPIO 引脚的LH 输入阈值 
+GPIO_IE=1 
+0.82 
+0.89 
+0.95 
+V 
+VGPIO_ITL 
+GPIO 引脚的HL 输入阈值 
+GPIO_IE=1 
+0.42 
+0.51 
+0.59 
+V 
+IGPIO_OH 
+GPIO 引脚的高电平输出电流 
+GPIO_OE=1 
+GPIO_OUT=1 
+VGPIO=1.125V 
+0.78 
+1.12 
+1.77 
+mA 
+IGPIO_OL 
+GPIO 引脚的低电平输出电流 
+GPIO_OE=1 
+GPIO_OUT=0 
+VGPIO=0.375V 
+0.81 
+1.2 
+2.13 
+mA 
+RGPIO 
+上拉电阻至VDDD 
+GPIO_OE=0 
+GPIO_PULL_UP=1 
+VGPIO=0.0V 
+195 
+280 
+427 
+kΩ 
+ 
+DAC 
+表格 282 DAC 特性 
+符号 
+描述 
+条件 
+最小值 
+典型值 
+最大值 
+单位 
+nDAC 
+DAC 分辨率(1) (2) 
+ 
+- 
+8 
+- 
+Bit 
+ROUT_DAC 
+DAC 输出电阻 
+ 
+34 
+50 
+75 
+kΩ 
+VOUT_DAC 
+DAC 输出电压范围(1) 
+ 
+0 
+- 
+VDDD 
+V 
+注意： 
+（1） 
+未在生产中测试 
+（2） 
+DAC 分辨率由其结构决定，不受生产的影响。产品规格的符合性通过数字测试隐含地进行测试。 
+ 
+DSI3 通信接口 
+表格 283 DSI3 前向通道（FCC）特性 
+符号 
+描述 
+条件 
+最小值 
+典型值 
+最大值 
+单位 
+VDSI_HIGH 
+信号高电平电压(1) 
+ 
+4 
+- 
+20 
+V 
+VDSI_LOW_THRES 
+信号低电平电压VDSI_LOW 检测阈值 
+ 
+VDSI_HIGH 
+ – 1.25 
+VDSI_HIGH 
+ – 1 
+VDSI_HIGH 
+ – 0.75 
+V 
+VDSI_DIF 
+信号高电平和低电平之间的电压差
+VDSI_HIGH – VDSI_LOW (1) 
+ 
+1.75 
+2 
+2.35 
+V 
+tDSI_BIT 
+FCC 位时间（标准）(1) 
+DSI_CFG[BIT_TIME]=0 
+- 
+8 
+- 
+μs 
+tDSI_BIT16 
+FCC 位时间(1) 
+DSI_CFG[BIT_TIME]=1 
+- 
+16 
+- 
+μs 
+tDSI_BIT32 
+FCC 位时间(1) 
+DSI_CFG[BIT_TIME]=2 
+- 
+32 
+- 
+μs 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 151 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 150 
+符号 
+描述 
+条件 
+最小值 
+典型值 
+最大值 
+单位 
+tDSI_BIT_TOL 
+FCC 位时间偏差(1) 
+ 
+-1 
+- 
+1 
+% 
+注意：未在生产中测试 
+表格 284 DSI3 反向通道（RCC）特性 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 
+单位 
+IDSI_RESP_2X 
+二级响应电流 
+不包含IDSI_Q 
+21 
+24 
+27 
+mA 
+IDSI_RESP_1X 
+一级响应电流 
+不包含IDSI_Q 
+10.5 
+12 
+13.5 
+mA 
+tDSI_RESP_SLEW 
+响应电流变化时间 
+10% 至 90% 
+200 
+- 
+1000 
+ns 
+IDSI_Q 
+静态电流 
+ 
+133.6 
+153.5 
+172.7 
+μA 
+tDSI_CHIP 
+Chip Time(1) 
+ 
+3 
+4 
+6 
+μs 
+tDSI_CHIP_TOL 
+Chip Time 偏差 
+ 
+-5 
+- 
+5 
+% 
+tDSI_SYMBOL 
+Symbol Time 
+ 
+- 
+3 
+- 
+tDSI_CHIP
+tDSI_RESP_CRM 
+CRM 模式应答开始时间（标准）(2) (3) 
+DSI_CFG[BIT_TIME]=0 
+280 
+295 
+310 
+μs 
+tDSI_RESP_CRM16 
+CRM 模式应答开始时间(2) (3) 
+DSI_CFG[BIT_TIME]=1 
+560 
+590 
+620 
+μs 
+tDSI_RESP_CRM32 
+CRM 模式应答开始时间(2) (3) 
+DSI_CFG[BIT_TIME]=2 
+1120 
+1180 
+1240 
+μs 
+tDSI_RESP_PDCM 
+PDCM 模式应答开始时间(2) (3) 
+ 
+15 
+- 
+8191 
+μs 
+tDSI_END 
+下一个采样周期前的静默时间(2)  
+ 
+10 
+- 
+- 
+μs 
+注意： 
+（1） 
+tDSI_CHIP 是可配置参数 
+（2） 
+未在生产中测试 
+（3） 
+软件必须确保DSI3 通信的正确时序。 
+表格 285 DSI3 自动编址特性 
+符号 
+描述 
+条件 
+最小值 
+典型值 
+最大值 单位 
+RDSI_SHUNT 
+从机用于检测电流的电阻 
+ 
+0.763 
+1.001 
+1.238 
+Ω 
+tDSI_DISC_PULSE 
+Discovery 模式命令脉冲宽度（标
+准）(1) 
+DSI_CFG[BIT_TIME]=0 
+- 
+16 
+- 
+μs 
+tDSI_DISC_PULSE16 
+Discovery 模式命令脉冲宽度(1) 
+DSI_CFG[BIT_TIME]=1 
+- 
+32 
+- 
+μs 
+tDSI_DISC_PULSE32 
+Discovery 模式命令脉冲宽度(1) 
+DSI_CFG[BIT_TIME]=2 
+- 
+64 
+- 
+μs 
+IDSI_DISC_THRES 
+Discovery 模式从机电流检测阈值 
+ 
+- 
+12 
+- 
+mA 
+tDSI_DISC_DELAY 
+Discovery 模式从机响应电流延迟时
+间（标准）(1) 
+ 
+- 
+64 
+- 
+μs 
+tDSI_DISC_DELAY16 
+Discovery 模式从机响应电流延迟时
+间(1) 
+DSI_CFG[BIT_TIME]=0 
+- 
+128 
+- 
+μs 
+tDSI_DISC_DELAY32 
+Discovery 模式从机响应电流延迟时
+间(1) 
+DSI_CFG[BIT_TIME]=1 
+- 
+256 
+- 
+μs 
+tDSI_DISC_ACT 
+Discovery 模式从机响应电流持续时
+间 
+DSI_CFG[BIT_TIME]=2 
+16 
+- 
+24 
+μs 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 152 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 151 
+符号 
+描述 
+条件 
+最小值 
+典型值 
+最大值 单位 
+tDSI_DISC_ACCEPT 
+Discovery 模式从机响应电流接受时
+间 
+ 
+16 
+- 
+32 
+μs 
+注意：未在生产中测试 
+ 
+MTP 
+表格 286 MTP 电气参数和可靠性特性 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 
+单位 
+SizeMTP 
+MTP 大小(1) (2) 
+ 
+- 
+- 
+32 
+kByte 
+tPROG_MTP_BIT 
+编程一位数据的时间（逻辑1）(1) 
+首次尝试编程即成功 
+- 
+120 
+- 
+μs 
+EnduranceMTP 
+MTP 的耐久性（写入次数）(1) 
+ 
+1 
+- 
+- 
+103次 
+tDR_MTP 
+数据保持时间(1) 
+在活动模式下最长5 年 
+15 
+- 
+- 
+年 
+注意： 
+（1） 
+未在生产中测试 
+（2） 
+执行了阵列清除测试，没有对每一位进行可编程性检查。MTP 大小由其结构决定，不受生产的影响。产品规
+格的符合性通过数字测试隐含地进行测试。 
+ 
+SRAM 
+表格 287 SRAM 特性 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 
+单位 
+SizeSRAM 
+SRAM 大小(1) (2) 
+ 
+- 
+- 
+4 
+kByte 
+注意： 
+（1） 
+未在生产中测试 
+（2） 
+MTP 大小由其结构决定，不受生产的影响。产品规格的符合性通过数字测试隐含地进行测试。 
+ 
+EEPROM 
+表格 288 EEPROM 电气参数和可靠性特性 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 
+单位 
+SizeEEPROM 
+EEPROM 大小(1) (2) 
+ 
+- 
+- 
+256 
+Byte 
+tREAD_EE_4MHz 
+读取访问时间 
+fCORE = 4MHz 
+- 
+- 
+2 
+μs 
+tREAD_EE_24MHz 
+读取访问时间 
+fCORE = 24MHz 
+- 
+- 
+1 
+μs 
+tERASE_EE 
+2 x 16 Bit 擦除时间 
+ 
+- 
+4.2 
+9.0 
+ms 
+tPROG_EE 
+16 Bit 编程时间 
+ 
+- 
+4.2 
+9.0 
+ms 
+tREAD_EE_TIMEOUT 
+读取访问超时时间 
+fCLK = 24MHz 
+- 
+1 
+- 
+μs 
+tERASE_EE_TIMEOUT 
+擦除超时时间 
+fCLK = 24MHz 
+- 
+10 
+- 
+ms 
+tPROG_EE_TIMEOUT 
+编程超时时间 
+fCLK = 24MHz 
+- 
+10 
+- 
+ms 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 153 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 152 
+符号 
+描述 
+条件 
+最小值 典型值 最大值 
+单位 
+tDR_EE 
+数据保持时间(1) 
+ 
+15 
+100 
+- 
+年 
+EnduranceEE 
+EEPROM 单元的耐久性（写入次数）(1) 
+ 
+10 
+- 
+- 
+103次 
+WriteDisturbEE 
+累积编程事件(1) (3) 
+ 
+12.6 
+- 
+- 
+106次 
+注意： 
+（1） 
+未在生产中测试 
+（2） 
+EEPROM 大小由其结构决定，不受生产的影响。产品规格的符合性通过数字测试隐含地进行测试。 
+（3） 
+当一个地址被编程时，未选中的地址可能会受到写入干扰的影响。虽然单次写入干扰事件不是问题，但写入干
+扰事件的累积效应可能会导致未选中地址上的位翻转。 
+ 
+推荐的工作条件 
+表格 289 推荐的工作条件 
+符号 
+描述 
+最小值 
+典型值 
+最大值 
+单位 
+VVSUP 
+供电电压 
+6 
+- 
+24 
+V 
+VDSII/VDSIO 
+DSII 和DSIO 引脚电压 
+4 
+- 
+20 
+V 
+fTransducer 
+换能器谐振频率 
+38 
+- 
+72 
+kHz 
+CVDDA 
+模拟电源的去耦电容 
+75 
+100 
+125 
+nF 
+CVDDD 
+数字电源的去耦电容 
+0.36 
+1 
+1.25 
+uF 
+TAMB 
+环境温度 
+-40 
+- 
+105 
+°C 
+TAMP,prog 
+MTP 编程时的环境温度 
+0 
+- 
+40 
+°C 
+ 
+绝对最大额定值 
+ 
+超出下面列出的绝对最大额定值可能会对设备造成永久性损坏。这些仅是应力等级，并
+不表示设备可以在这些条件或本文档未列出的任何其他条件下运行。 
+ 
+长时间暴露于绝对最大额定条件可能会影响设备的可靠性。 
+ 
+除非另有说明，所有提到的电压都是相对于地(GNDA)。 
+ 
+流入设备引脚的电流为正，从设备引脚流出的电流为负。 
+表格 290 绝对最大额定值 
+符号 
+描述 
+条件 
+最小值 
+最大值 
+单位 
+VVSUP 
+供电电压 
+ 
+-0.3 
+24 
+V 
+VDSII, DSIO 
+DSII 和DSIO 引脚的最大电压 
+ 
+-24 
+24 
+V 
+IDSII, DSIO 
+DSII 和DSIO 引脚的最大输入电流 
+ 
+-100 
+100 
+mA 
+VD 
+数字引脚的电压 
+(DEBUG, GPIO0, GPIO1, GPIO2, GPIO3) 
+ 
+-0.3 
+1.65 
+V 
+VD_DEBUG 
+数字引脚的电压 
+(DEBUG, GPIO0, GPIO1, GPIO2, GPIO3) 
+DEBUG=5V 
+-0.3 
+5 
+V 
+IINP, IINN 
+放大器输入引脚的输入电流 (INP, INN) 
+ 
+-20 
+20 
+mA 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 154 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 153 
+符号 
+描述 
+条件 
+最小值 
+最大值 
+单位 
+VVDDA 
+内部模拟供电电压 
+ 
+-0.3 
+5 
+V 
+VVDDD 
+内部数字供电电压 
+ 
+-0.3 
+1.65 
+V 
+VDRV1, VDRV2, 
+VDRVC, VVT 
+DRV1, DRV2, DRVC, VT 引脚的电压 
+ 
+-0.3 
+24 
+V 
+TJ 
+结温度 
+ 
+-40 
+125 
+°C 
+TSTG,soldered 
+焊接后的存储温度 
+ 
+-55 
+150 
+°C 
+TSTG,unsoldered 
+未焊接的存储温度 
+ 
+-55 
+125 
+°C 
+注意：存储不考虑包装材料，如胶带、卷轴、干燥包、箔等。当超出以下存储等级（即-40°C 条件下最大48 小时，或
++125°C 条件下最大168 小时）时，可能会影响设备的可焊性。 
+ 
+ESD 保护 
+表格 291 ESD 特性 
+符号 
+描述 
+条件 
+最小值 
+最大值 
+单位 
+VESD(HBM)DSI 
+DSI 引脚 
+根据AEC-Q100-002（HBM） 
+芯片级测试 
+-6 
+6 
+kV 
+VESD(HBM) 
+其他所有引脚 
+-2 
+2 
+kV 
+VESD(CDM)C 
+靠近角落处引脚 
+(引脚 1,5,6,10,11,15,16,20) 
+根据AEC-Q100-011（CDM） 
+芯片级测试 
+-750 
+750 
+V 
+VESD(CDM) 
+其他所有引脚 
+-500 
+500 
+V 
+ 
+静态栓锁 
+根据JEDEC 标准JESD 78 的有效修订版本，已验证静态栓锁性能。 
+ 
+ 
+TO 深圳市顺禾电器科技有限公司
+
+=== G32A217 PAGE 155 ===
+ 
+ 
+ 
+www.geehy.com                                                                                 Page 154 
+ 
+封装信息 
+此IC 采用无铅、符合RoHs 标准的QFN20 封装，根据JEDEC MO-220 K 标准VHHC-2。根据
+JEDEC 标准JESD-51-6 和JESD，结至环境的热阻Rth,ja 为37°C /W。 
+图 61 QFN20 封装图 
+ 
+表格 292 封装尺寸 
+符号 
+描述 
+最小值(mm) 
+典型值(mm) 
+最大值(mm) 
+A 
+封装高度 
+0.80 
+0.85 
+0.90 
+A1 
+托脚高度 
+0.00 
+0.02 
+0.05 
+b 
+端子引脚的宽度 
+0.30 
+0.35 
+0.40 
+c 
+端子引脚的厚度 
+0.18 
+0.20 
+0.25 
+D / E 
+封装长度/宽度 
+4.90 
+5.00 
+5.10 
+D2 / E2 
+暴露焊盘的长度/宽度 
+3.05 
+3.15 
+3.25 
+e 
+引脚间距 
+0.65 BSC 
+Nd / Ne 
+引脚总跨度 
+2.60 BSC 
+L 
+用于焊接到基板的端子长度 
+0.35 
+0.40 
+0.45 
+L1 
+用于焊接到基板的端子长度 
+0.25 
+0.30 
+0.35 
+h 
+定位标记的高度 
+0.30 
+0.35 
+0.40 
+ 
+ 
+TO 深圳市顺禾电器科技有限公司

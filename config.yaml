@@ -1,0 +1,214 @@
+# AK2 PC-side Simulator Configuration File
+# Restart the application after editing.
+
+# ─────────────────────────────────────────────
+# Data paths
+# ─────────────────────────────────────────────
+data:
+  testdata_root: "./TestData"        # root directory for test data
+  reports_output: "./reports"        # batch evaluation report output directory
+  logs_output: "./logs"              # runtime log directory
+
+# ─────────────────────────────────────────────
+# Window layout (pixels)
+# Adjust these values if panels overlap or go off-screen.
+# ─────────────────────────────────────────────
+windows:
+  control_panel:
+    width: 420          # W1 control panel width (px)
+    height: 1275        # W1 control panel height (px) — reduce if bottom edge is off-screen
+  display_panel:
+    gap: 10             # gap between control panel and display panel (px)
+    width: 1800         # display panel width (px) — increase if panels overlap or are too narrow
+    height: 1200        # display panel height (px)
+  envelope:
+    width: 1400
+    height: 560        # 2 rows × ~240px per plot + headers
+
+# ─────────────────────────────────────────────
+# 推理引擎配置
+# ─────────────────────────────────────────────
+engine:
+  dll_path: "./lib/inference_core_x64.dll"  # AI推理动态库路径
+  dll_version: "1.2.0"                       # 期望的DLL版本号（不一致时警告）
+  default_mode: "traditional"                # 启动默认算法类型: "ai" 或 "traditional"
+  result_cache_frames: 200                   # 推理结果内存缓存帧数
+  data_source: "file"                        # 数据来源: "file" 或 "hil_usb"
+
+# ─────────────────────────────────────────────
+# 传统算法阈值配置
+# ─────────────────────────────────────────────
+traditional:
+  confidence_threshold: 50        # EDI置信度有效性门限（0~100）
+  amplitude_sigma: 3.0            # 幅度有效性：噪声基底×σ倍数
+  debounce_frames: 3              # 去抖动确认所需连续帧数
+  elastic_rms_threshold: 0.5      # 弹性波碰撞判断RMS阈值（保留，暂未使用）
+
+# ─────────────────────────────────────────────
+# AI算法配置
+# ─────────────────────────────────────────────
+ai:
+  # ── M1 有效性门控 ──────────────────────────
+  m1_validity_threshold: 0.5      # M1 输出≥该值则判定有障碍物（0~1）
+  m1_spatial_suppress: true       # 孤立通道空间一致性后滤波（无ML，规则）
+  m1_suppress_alpha: 0.4          # 孤立抑制系数（0=不抑制, 1=完全抑制）
+
+  # ── M2-SC 单通道分类骨干 ───────────────────
+  m2_model_path: "models/M2/M2_obstacle_classifier_v1.0.0.pt"
+
+  # ── M2-SA 空间注意力模块（Layer-2B）─────────
+  # false = 退回纯 M2-SC 行为（向后兼容，适用 MCU 部署）
+  m2_sa_enabled: true
+  m2_sa_model_path: "models/M2/M2_spatial_attention_v1.0.0.pt"
+
+  # ── 多帧时序融合（SoC 扩展，仅 m2_sa_enabled=true 时生效）─
+  # temporal_frames = 1 : 单帧模式，无帧缓存（MCU 兼容）
+  # temporal_frames = 3 : 时序加权池化（2~5 TOPS 推荐）
+  # temporal_frames = 5 : 学习型时序注意力（5~10 TOPS 推荐）
+  # temporal_frames = 8 : 全配置，可开启 CAN 融合（10 TOPS+ / GPU）
+  temporal_frames: 1
+
+  # temporal_mode（预留，当前版本未接入）：
+  #   多帧融合统一由 SA 模型内置的 temporal_score 学习型注意力处理，
+  #   尚未区分 "pool" / "attention" 两种策略，此键保留供后续扩展。
+  temporal_mode: "pool"
+
+  # ── M6 场景理解 2D-CNN（Layer-3）──────────────────────────
+  # m6_enabled: false → 禁用 M6，ogm_grid 保持零矩阵
+  # 模型不存在时自动回退到 disabled，不影响 M1/M2/SA 运行
+  m6_enabled: true
+  m6_model_path: "models/M6/M6_scene_understanding_v3.0.0.pt"
+
+  # use_can_context（预留，当前版本未接入）：
+  #   计划将速度/转角/档位作为运动状态先验融入推理，尚未实现。
+  use_can_context: false
+
+# ─────────────────────────────────────────────
+# 显示配置
+# ─────────────────────────────────────────────
+display:
+  vehicle_length_m: 4.5                     # OGM中车辆轮廓长度（m）
+  vehicle_width_m: 1.9                      # OGM中车辆轮廓宽度（m）
+  ogm_range_front_m: 8.0                    # OGM前向显示范围（m）：前排传感器安装偏移2.25m + 最大检测距离5.5m ≈ 7.75m，取8m
+  ogm_range_side_m: 6.5                     # OGM侧向显示范围（m）：侧向传感器安装偏移0.95m + 最大检测距离5.5m ≈ 6.45m，取6.5m
+  ogm_resolution_m: 0.1                     # OGM栅格分辨率（m）
+  envelope_history_frames: 5               # 包络波形叠加的历史帧数
+  collision_time_window_frames: 50          # 碰撞时序图回溯帧数
+  advantage_banner_duration_frames: 3       # AI优势高亮横幅持续帧数
+
+# ─────────────────────────────────────────────────────────────
+# Sensor mount configuration (vehicle frame: +X=forward, +Y=left, +Z=up, ground=0)
+# z_m: mount height above ground (m); pitch_deg: tilt of beam axis (+ = nose up).
+# Numbering rule: left-to-right in bird's-eye view, front row then rear row.
+# Front row (ch0~ch5):  S01=FL-Side  S02=FL-Corner  S03=FL-Center
+#                        S04=FR-Center  S05=FR-Corner  S06=FR-Side
+# Rear  row (ch6~ch11): S07=RL-Side  S08=RL-Corner  S09=RL-Center
+#                        S10=RR-Center  S11=RR-Corner  S12=RR-Side
+# ─────────────────────────────────────────────────────────────
+sensors:
+  S01:                   # ch0  — Front Left Side
+    x_m: 1.20
+    y_m: 0.95
+    z_m: 0.50
+    yaw_deg: 90.0
+    pitch_deg: 0.0
+    fov_deg: 60
+    label: "FL Side"
+  S02:                   # ch1  — Front Left Corner
+    x_m: 2.25
+    y_m: 0.85
+    z_m: 0.55
+    yaw_deg: 45.0
+    pitch_deg: 0.0
+    fov_deg: 75
+    label: "FL Corner"
+  S03:                   # ch2  — Front Left Center
+    x_m: 2.25
+    y_m: 0.30
+    z_m: 0.55
+    yaw_deg: 10.0
+    pitch_deg: 0.0
+    fov_deg: 75
+    label: "FL Center"
+  S04:                   # ch3  — Front Right Center
+    x_m: 2.25
+    y_m: -0.30
+    z_m: 0.55
+    yaw_deg: -10.0
+    pitch_deg: 0.0
+    fov_deg: 75
+    label: "FR Center"
+  S05:                   # ch4  — Front Right Corner
+    x_m: 2.25
+    y_m: -0.85
+    z_m: 0.55
+    yaw_deg: -45.0
+    pitch_deg: 0.0
+    fov_deg: 75
+    label: "FR Corner"
+  S06:                   # ch5  — Front Right Side
+    x_m: 1.20
+    y_m: -0.95
+    z_m: 0.50
+    yaw_deg: -90.0
+    pitch_deg: 0.0
+    fov_deg: 60
+    label: "FR Side"
+  S07:                   # ch6  — Rear Left Side
+    x_m: -0.60
+    y_m: 0.95
+    z_m: 0.50
+    yaw_deg: 90.0
+    pitch_deg: 0.0
+    fov_deg: 60
+    label: "RL Side"
+  S08:                   # ch7  — Rear Left Corner
+    x_m: -2.25
+    y_m: 0.85
+    z_m: 0.55
+    yaw_deg: 135.0
+    pitch_deg: 0.0
+    fov_deg: 75
+    label: "RL Corner"
+  S09:                   # ch8  — Rear Left Center
+    x_m: -2.25
+    y_m: 0.30
+    z_m: 0.55
+    yaw_deg: 170.0
+    pitch_deg: 0.0
+    fov_deg: 75
+    label: "RL Center"
+  S10:                   # ch9  — Rear Right Center
+    x_m: -2.25
+    y_m: -0.30
+    z_m: 0.55
+    yaw_deg: -170.0
+    pitch_deg: 0.0
+    fov_deg: 75
+    label: "RR Center"
+  S11:                   # ch10 — Rear Right Corner
+    x_m: -2.25
+    y_m: -0.85
+    z_m: 0.55
+    yaw_deg: -135.0
+    pitch_deg: 0.0
+    fov_deg: 75
+    label: "RR Corner"
+  S12:                   # ch11 — Rear Right Side
+    x_m: -0.60
+    y_m: -0.95
+    z_m: 0.50
+    yaw_deg: -90.0
+    pitch_deg: 0.0
+    fov_deg: 60
+    label: "RR Side"
+
+# ─────────────────────────────────────────────
+# HIL扩展配置（默认关闭）
+# ─────────────────────────────────────────────
+hil:
+  enabled: false
+  device_path: "COM3"
+  sensor_count: 12
+  frame_timeout_ms: 150
+  record_to_testdata: false
